@@ -58,7 +58,9 @@
   "browser": "./dist/web/extension-web.js",
   "packageManager": "yarn@1.22.19",
   "files": [
-    "dist",
+    "dist/",
+    "dist/web/",
+    "dist/webview/",
     "asset/",
     "screenshot/"
   ],
@@ -689,7 +691,7 @@
     "test": "vscode-test",
     "postinstall": "patch-package",
     "package": "rm -rf dist dist-web && webpack --mode production --devtool hidden-source-map",
-    "package:desktop": "npm run package && vsce package",
+    "package:desktop": "npm run package && vsce package --target universal",
     "package:web": "npm run package && sed -i.bak 's/\"name\": \"blocklypy-vscode\"/\"name\": \"blocklypy-vscode-web\"/' package.json && vsce package --target web && mv package.json.bak package.json",
     "package-extension": "npx vsce package",
     "publish-extension": "npx vsce publish",

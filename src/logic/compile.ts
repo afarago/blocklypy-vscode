@@ -36,7 +36,7 @@ export type CompileModule = {
  * universal: binary data of the my-cross.wasm file
  * web: URI for the web extension host
  */
-export let mpyCrossWasm: {
+export const mpyCrossWasm: {
     binary?: Uint8Array;
     uri?: vscode.Uri;
 } = {};
