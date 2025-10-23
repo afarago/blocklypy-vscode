@@ -3,9 +3,10 @@ import {
     type Peripheral,
     type PeripheralAdvertisement,
 } from '@stoprocent/noble';
+
 import _ from 'lodash';
 import { ConnectionState, DeviceMetadata } from '..';
-import { isDevelopmentMode } from '../../extension';
+import { isDevelopmentMode } from '../../extension-common';
 import Config, { ConfigKeys } from '../../extension/config';
 import { setStatusBarItem } from '../../extension/statusbar';
 import { hasState, setState, StateProp } from '../../logic/state';
@@ -68,7 +69,7 @@ export class BLELayer extends BaseLayer {
         );
     }
 
-    public async initialize() {
+    public override async initialize() {
         // throw new Error('Noble import not supported');
         const nobleModule = await import('@stoprocent/noble');
         this._noble = nobleModule?.withBindings('default'); // 'hci', 'win', 'mac'
@@ -246,7 +247,7 @@ export class BLELayer extends BaseLayer {
         void this.startScanning();
     }
 
-    public async startScanning() {
+    public override async startScanning() {
         this._allDevices.clear();
 
         // if there is an active connection, re-add it to keep the reference
@@ -290,11 +291,11 @@ export class BLELayer extends BaseLayer {
         });
     }
 
-    public stopScanning() {
+    public override stopScanning() {
         this._noble?.stopScanning();
     }
 
-    public get scanning() {
+    public override get scanning() {
         return this._isScanning;
     }
 

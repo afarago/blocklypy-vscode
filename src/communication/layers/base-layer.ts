@@ -23,7 +23,7 @@ export enum LayerType {
     BLE = 'ble-layer',
     USB = 'usb-layer',
 }
-export abstract class BaseLayer {
+export class BaseLayer {
     protected static activeClient: BaseClient | undefined = undefined;
 
     public static readonly name: LayerType;
@@ -63,8 +63,12 @@ export abstract class BaseLayer {
         this._stateChange.fire({ client: BaseLayer.activeClient, state: this._state });
     }
 
-    public abstract get scanning(): boolean;
-    public abstract initialize(): Promise<void>;
+    public get scanning(): boolean {
+        return false;
+    }
+    public async initialize(): Promise<void> {
+        // NOOP
+    }
 
     public supportsDevtype(_devtype: string) {
         return false;
@@ -223,8 +227,12 @@ export abstract class BaseLayer {
         });
     }
 
-    public abstract stopScanning(): void;
-    public abstract startScanning(): Promise<void>;
+    public stopScanning(): void {
+        // NOOP
+    }
+    public async startScanning(): Promise<void> {
+        // NOOP
+    }
 
     public removeClient(client?: BaseClient) {
         const id = client?.id;

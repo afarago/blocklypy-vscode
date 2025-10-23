@@ -1,4 +1,5 @@
 import { Characteristic } from '@stoprocent/noble';
+
 import { DeviceMetadata } from '..';
 import {
     SPIKE_RX_CHAR_UUID,

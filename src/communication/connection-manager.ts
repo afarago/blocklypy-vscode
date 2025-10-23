@@ -11,9 +11,8 @@ import {
     BaseLayer,
     ConnectionStateChangeEvent,
     DeviceChangeEvent,
+    LayerType,
 } from './layers/base-layer';
-import { BLELayer } from './layers/ble-layer';
-import { USBLayer } from './layers/usb-layer';
 
 export const CONNECTION_TIMEOUT_DEFAULT = 15000;
 export const RSSI_REFRESH_WHILE_CONNECTED_INTERVAL = 5000;
@@ -48,10 +47,10 @@ export class ConnectionManager {
         return BaseLayer.ActiveClient;
     }
 
-    public static async initialize() {
+    public static async initialize(layers: (typeof BaseLayer)[] = []) {
         // Initialization code here
 
-        for (const layerCtor of [BLELayer, USBLayer]) {
+        for (const layerCtor of layers) {
             try {
                 const instance = new layerCtor(
                     (event) => ConnectionManager.handleStateChange(event),
@@ -189,7 +188,9 @@ export class ConnectionManager {
 
         if (Config.FeatureFlag.get(FeatureFlags.AutoConnectFirstUSBDevice)) {
             // autoconnect to first USB device
-            autoconnectIds.push(USBLayer.name); // connect to any device of
+            // find usb layer
+            const usbLayer = this.layers.find((layer) => layer.name === LayerType.USB);
+            if (usbLayer) autoconnectIds.push(usbLayer.name); // connect to any device of
         }
 
         if (

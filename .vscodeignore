@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 out/**
+dist-web/**
 node_modules/**
 src/**
 .gitignore
@@ -18,6 +19,7 @@ vsc-extension-quickstart.md
 .markdownlint.json
 .prettierc.json
 .vscode-test*
+.vscode-test-web*
 eslint.config.js
 jest.config.js
 tsconfig*
@@ -28,6 +30,7 @@ __mocks__/**
 .github/**
 .venv/**
 .DS_Store
+dist/web/*
 
 node_modules
 *.log

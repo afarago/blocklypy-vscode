@@ -8,7 +8,7 @@ import {
     PybricksDebugEnabled,
     transformCodeForDebugTunnel,
 } from '../debug-tunnel/compile-helper';
-import { extensionContext } from '../extension';
+import { extensionContext } from '../extension-common';
 import Config, { FeatureFlags } from '../extension/config';
 import { logDebug } from '../extension/debug-channel';
 import { transformCodeForPlot } from '../plot/compile-helper';

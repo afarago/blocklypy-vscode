@@ -2,23 +2,25 @@
 
 'use strict';
 
+const webpack = require('webpack');
 const path = require('path');
+const glob = require('glob');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
-const glob = require('glob');
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
 const isDevelopment = process.env.NODE_ENV?.trim() === 'development';
-console.log(`isDevelopment: ${isDevelopment}`);
+const { platform } = require('node:process');
+console.log(`isDevelopment: ${isDevelopment}, platform: ${platform}`);
 
 /** @type WebpackConfig */
-const extensionConfig = {
+const extensionUniversalConfig = {
     target: 'node',
     mode: 'none',
     entry: {
-        extension: './src/extension.ts',
+        'extension-universal': './src/extension-universal.ts',
     },
     output: {
         filename: '[name].js',
@@ -29,7 +31,10 @@ const extensionConfig = {
         {
             vscode: 'commonjs vscode',
         },
-        '@stoprocent/bluetooth-hci-socket',
+        '@pybricks/mpy-cross-v6',
+        ...(['win32', 'darwin'].includes(platform)
+            ? ['@stoprocent/bluetooth-hci-socket']
+            : []),
         'ws',
     ],
     resolve: {
@@ -63,10 +68,10 @@ const extensionConfig = {
                     ),
                     to: path.resolve(__dirname, 'dist'),
                 },
-                {
-                    from: path.resolve(__dirname, 'src/assets'),
-                    to: path.resolve(__dirname, 'dist/assets'),
-                },
+                // {
+                //     from: path.resolve(__dirname, 'src/assets'),
+                //     to: path.resolve(__dirname, 'dist/assets'),
+                // },
             ],
         }),
     ],
@@ -77,11 +82,92 @@ const extensionConfig = {
     },
 };
 
+/** @type WebpackConfig */
+const extensionWebConfig = {
+    target: 'webworker',
+    mode: isDevelopment ? 'development' : 'production',
+    entry: {
+        'extension-web': './src/extension-web.ts',
+    },
+    output: {
+        filename: '[name].js',
+        path: path.resolve(__dirname, 'dist/web'),
+        libraryTarget: 'commonjs2',
+        devtoolModuleFilenameTemplate: '../[resource-path]',
+    },
+    externals: {
+        vscode: 'commonjs vscode',
+    },
+    resolve: {
+        mainFields: ['browser', 'module', 'main'],
+        extensions: ['.ts', '.js', '.json'],
+        fallback: {
+            assert: require.resolve('assert'),
+            path: require.resolve('path-browserify'),
+            url: require.resolve('url'),
+            'crc-32': false,
+            fs: false,
+            crypto: false,
+            os: false,
+            stream: false,
+            util: false,
+        },
+    },
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: 'ts-loader',
+                        options: {
+                            configFile: 'tsconfig.web.json',
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+    devtool: isDevelopment ? 'source-map' : 'hidden-source-map',
+    infrastructureLogging: {
+        level: 'log',
+    },
+    plugins: [
+        new webpack.ProvidePlugin({
+            process: 'process/browser', // provide a shim for the global `process` variable
+            Buffer: ['buffer', 'Buffer'], // provide a shim for the global `Buffer` variable
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.resolve(
+                        __dirname,
+                        'node_modules/@pybricks/mpy-cross-v6/build/mpy-cross-v6.wasm',
+                    ),
+                    to: path.resolve(__dirname, 'dist/web'),
+                },
+                // {
+                //     from: path.resolve(__dirname, 'src/assets'),
+                //     to: path.resolve(__dirname, 'dist/web/assets'),
+                // },
+            ],
+        }),
+    ],
+    optimization: {
+        minimize: !isDevelopment,
+    },
+    performance: {
+        hints: false,
+    },
+};
+
 const webviewEntryFiles = glob
     .sync(path.resolve(__dirname, 'src/views/webview/*.ts'))
     .filter((f) => !f.endsWith('.d.ts'));
 webviewEntryFiles.push(path.resolve(__dirname, 'src/views/webview/monaco-vendor.ts'));
 
+// !! TODO: webview is needed for dist and dist/web as well
 const webviewConfig = {
     target: 'web',
     mode: 'none',
@@ -93,7 +179,7 @@ const webviewConfig = {
     ),
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'dist/webview'),
     },
     resolve: {
         extensions: ['.ts', '.js', '.json'],
@@ -106,7 +192,7 @@ const webviewConfig = {
                     {
                         loader: 'ts-loader',
                         options: {
-                            configFile: path.resolve(__dirname, 'tsconfig.json'),
+                            configFile: path.resolve(__dirname, 'tsconfig.web.json'),
                         },
                     },
                 ],
@@ -161,4 +247,8 @@ const webviewConfig = {
         : undefined,
 };
 
-module.exports = [extensionConfig, webviewConfig];
+module.exports = [
+    extensionUniversalConfig,
+    // extensionWebConfig,
+    webviewConfig,
+];

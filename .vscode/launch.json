@@ -20,6 +20,27 @@
             }
         },
         {
+            "name": "Run Extension Web (npm)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "open-in-browser"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "${defaultBuildTask}",
+            "env": {
+                "DEBUG": "serialport*"
+            }
+        },
+        {
+            "name": "Attach to Extension Web",
+            "type": "chrome",
+            "request": "attach",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
             "name": "Debug Jest Tests",
             "type": "node",
             "request": "launch",

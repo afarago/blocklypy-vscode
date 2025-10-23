@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
+
 import { disconnectDeviceAsync } from './commands/disconnect-device';
 import { stopUserProgramAsync } from './commands/stop-user-program';
 import { ConnectionManager } from './communication/connection-manager';
+import { BaseLayer } from './communication/layers/base-layer';
 import { registerDebugTunnel } from './debug-tunnel/debug-tunnel';
 import { registerPybricksTunnelDebug } from './debug-tunnel/register';
 import { Commands, registerCommands } from './extension/commands';
@@ -20,7 +22,10 @@ import { PythonPreviewProvider } from './views/PythonPreviewProvider';
 export let isDevelopmentMode: boolean;
 export let extensionContext: vscode.ExtensionContext;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activateCommon(
+    context: vscode.ExtensionContext,
+    layers: (typeof BaseLayer)[] = [],
+) {
     extensionContext = context;
     isDevelopmentMode = context.extensionMode === vscode.ExtensionMode.Development;
 
@@ -91,7 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Finally, initialize the connection manager and auto-connect if needed
-    void ConnectionManager.initialize().catch(console.error);
+    await ConnectionManager.initialize(layers);
 
     setTimeout(() => {
         logDebug(
@@ -133,15 +138,3 @@ async function onActiveEditorSaveCallback(document: vscode.TextDocument) {
         }
     }
 }
-
-process.on('uncaughtException', (err) => {
-    if (isDevelopmentMode) console.error('Uncaught Exception:', err);
-    // Optionally show a VS Code error message:
-    // vscode.window.showErrorMessage('Uncaught Exception: ' + err.message);
-});
-
-process.on('unhandledRejection', (reason, _promise) => {
-    if (isDevelopmentMode) console.error('Unhandled Rejection:', reason);
-    // Optionally show a VS Code error message:
-    // vscode.window.showErrorMessage('Unhandled Rejection: ' + String(reason));
-});
