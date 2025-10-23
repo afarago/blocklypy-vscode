@@ -1,6 +1,7 @@
 export class DeviceMetadata {
     constructor(public deviceType: string) {}
     public validTill: number = Number.MAX_VALUE;
+    public reuseAfterReconnect: boolean = true;
     public get rssi(): number | undefined {
         return undefined;
     }

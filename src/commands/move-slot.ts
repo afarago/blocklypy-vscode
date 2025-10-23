@@ -1,4 +1,3 @@
-import { HubOSBaseClient } from '../communication/clients/hubos-base-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { logDebug } from '../extension/debug-channel';
 import { HUBOS_SPIKE_SLOTS } from '../spike';
@@ -15,7 +14,8 @@ export async function moveSlotAny(...args: any[]): Promise<any> {
 }
 
 export async function moveSlot(from?: number, to?: number) {
-    if (!checkHubOSSlotPrerequisites()) return;
+    const client = ConnectionManager.client;
+    if (!checkHubOSSlotPrerequisites() || !client) return;
 
     for (const [key, value] of [
         ['from', from],
@@ -43,9 +43,7 @@ export async function moveSlot(from?: number, to?: number) {
     }
 
     // move slot
-    const success = await (
-        ConnectionManager.client as HubOSBaseClient
-    ).action_move_slot(from, to);
+    const success = await client.action_move_slot(from, to);
     if (!success) {
         logDebug(`Failed to move slot ${from} to ${to}.`);
         return;

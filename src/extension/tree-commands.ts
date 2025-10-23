@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { DeviceMetadata } from '../communication';
 import { ConnectionManager } from '../communication/connection-manager';
-import { DeviceChangeEvent } from '../communication/layers/base-layer';
+import { BaseLayer, DeviceChangeEvent } from '../communication/layers/base-layer';
 import { EXTENSION_KEY } from '../const';
 import { PybricksDebugEnabled } from '../debug-tunnel/compile-helper';
 import { getStateString, hasState, onStateChange, StateProp } from '../logic/state';
@@ -123,20 +123,39 @@ class CommandsTreeDataProvider extends BaseTreeDataProvider<TreeItemExtData> {
             return elems;
         } else if (element.id === Subtree.Devices) {
             const elems = Array.from(this.deviceMap.values());
-            if (!hasState(StateProp.Scanning)) {
-                elems.push({
-                    title: 'Click to start scanning.',
-                    // icon: '$(circle-slash)',
-                    command: Commands.StartScanning,
-                });
-            } else if (elems.length === 0) {
-                // Show scanning status if no devices
-                elems.push({
-                    title: 'Scanning for devices...',
-                    icon: '$(loading~spin)',
-                    command: Commands.StopScanning,
-                });
+
+            // scan enabled layers
+            if (ConnectionManager.canScan) {
+                if (!hasState(StateProp.Scanning)) {
+                    elems.push({
+                        title: 'Click to start scanning.',
+                        // icon: '$(circle-slash)',
+                        command: Commands.StartScanning,
+                    });
+                } else if (elems.length === 0) {
+                    // Show scanning status if no devices
+                    elems.push({
+                        title: 'Scanning for devices...',
+                        icon: '$(loading~spin)',
+                        command: Commands.StopScanning,
+                    });
+                }
             }
+
+            // handle non-scanning layers
+            if (!hasState(StateProp.Connected)) {
+                for (const layer of ConnectionManager.getLayers(false)) {
+                    const name = (layer.constructor as typeof BaseLayer).descriptor
+                        .name;
+                    elems.push({
+                        title: `Click to connect to ${name}.`,
+                        icon: '$(plug)',
+                        command: Commands.ManualConnectDevice,
+                        commandArguments: [layer.descriptor.id],
+                    });
+                }
+            }
+
             return elems;
         } else if (element.id === Subtree.Settings) {
             const settingsToShow = [

@@ -9,7 +9,7 @@ import { disconnectDeviceAsync } from '../commands/disconnect-device';
 import { moveSlotAny } from '../commands/move-slot';
 import { startUserProgramAsync } from '../commands/start-user-program';
 import { stopUserProgramAsync } from '../commands/stop-user-program';
-import { PybricksBleClient } from '../communication/clients/pybricks-ble-client';
+import { DeviceOSType, StartMode } from '../communication/clients/base-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { BLOCKLYPY_COMMANDS_VIEW_ID, EXTENSION_KEY } from '../const';
 import { loadPythonAssetModule } from '../logic/compile';
@@ -27,6 +27,7 @@ import { openOrActivate as openOrActivateAsync, wrapErrorHandling } from './util
 export enum Commands {
     ConnectDevice = EXTENSION_KEY + '.connectDevice',
     DisconnectDevice = EXTENSION_KEY + '.disconnectDevice',
+    ManualConnectDevice = EXTENSION_KEY + '.manualConnectDevice',
     Compile = EXTENSION_KEY + '.compile',
     CompileAndRun = EXTENSION_KEY + '.compileAndRun',
     CompileAndRunWithDebug = EXTENSION_KEY + '.compileAndRunWithDebug',
@@ -140,6 +141,13 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
         handler: connectDeviceAsyncAny,
     },
     {
+        command: Commands.ManualConnectDevice,
+        handler: async (...args: unknown[]) => {
+            const layerid = args[0] as string | undefined;
+            await ConnectionManager.connectManuallyOnLayer(layerid);
+        },
+    },
+    {
         command: Commands.Compile,
         handler: async () => void (await compileOnlyAsync()),
     },
@@ -231,17 +239,17 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
         command: Commands.StartREPL,
         handler: async () => {
             const client = ConnectionManager.client;
-            if (!(client instanceof PybricksBleClient))
+            if (client?.classDescriptor.os !== DeviceOSType.Pybricks)
                 throw new Error('Connect a Pybricks device first.');
 
-            await client?.action_startREPL();
+            await client?.action_start(StartMode.REPL);
         },
     },
     {
         command: Commands.StartHubMonitor,
         handler: async () => {
             const client = ConnectionManager.client;
-            if (!(client instanceof PybricksBleClient))
+            if (client?.classDescriptor.os !== DeviceOSType.Pybricks)
                 throw new Error('Connect a Pybricks device first.');
 
             const { uri, content } = await loadPythonAssetModule('hubmonitor.min.py');
@@ -252,8 +260,7 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
                     location: { viewId: BLOCKLYPY_COMMANDS_VIEW_ID },
                 },
                 async () => {
-                    await client.action_startREPL();
-                    await client.action_sendCodeToRepl(content);
+                    await client.action_start(StartMode.REPL, content);
                     logDebug(
                         `📡 Started Hub Monitor from ${path.basename(uri.fsPath)}`,
                     );

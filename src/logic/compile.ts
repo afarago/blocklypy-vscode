@@ -31,6 +31,16 @@ export type CompileModule = {
     mpy?: Uint8Array; // filled after compilation
 };
 
+/**
+ * one of these will be set by the extension activating code
+ * universal: binary data of the my-cross.wasm file
+ * web: URI for the web extension host
+ */
+export let mpyCrossWasm: {
+    binary?: Uint8Array;
+    uri?: vscode.Uri;
+} = {};
+
 function getBreakpointsFromEditors(): Map<string, number[]> {
     const breakpointsByFile = new Map<string, number[]>();
 
@@ -285,18 +295,28 @@ async function compileInternal(
 ): Promise<[number, Uint8Array | undefined]> {
     // HACK: This is a workaround for https://github.com/pybricks/support/issues/2185
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const fetch_backup = (global as any).fetch;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    (global as any).fetch = undefined;
+    // const fetch_backup = (global as any).fetch;
+    // if (isUniversal()) {
+    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    //     (global as any).fetch = undefined;
+    // }
     try {
-        const compiled = await compile(path, content, undefined, undefined)
+        const compiled = await compile(
+            path,
+            content,
+            [],
+            mpyCrossWasm.uri?.toString(), // web extension
+            mpyCrossWasm.binary, // universal extension
+        )
             .catch((e) => {
                 console.error(`Failed to compile ${name}: ${e}`);
                 return { status: 1, mpy: undefined };
             })
             .finally(() => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-                (global as any).fetch = fetch_backup;
+                // if (isUniversal()) {
+                //     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                //     (global as any).fetch = fetch_backup;
+                // }
             });
         return [compiled.status, compiled.mpy];
     } catch {

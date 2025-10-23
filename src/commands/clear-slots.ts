@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 
-import { HubOSBaseClient } from '../communication/clients/hubos-base-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { logDebug } from '../extension/debug-channel';
 import { hasState, StateProp } from '../logic/state';
@@ -31,10 +30,10 @@ async function confirmSlotClearByUser(message: string) {
 }
 
 export async function clearAllSlots() {
-    if (!checkHubOSSlotPrerequisites()) return;
+    const client = ConnectionManager.client;
+    if (!checkHubOSSlotPrerequisites() || !client) return;
     if (!(await confirmSlotClearByUser('all slots'))) return;
 
-    const client = ConnectionManager.client as HubOSBaseClient;
     const { completed, failed } = await client.action_clear_all_slots();
 
     const message = Array.from([
@@ -53,7 +52,8 @@ export async function clearAllSlots() {
 export async function clearSlotAny(...args: any[]) {
     let slot: number | undefined = parseInt((args[0] as string | undefined) ?? '', 10);
 
-    if (!checkHubOSSlotPrerequisites()) return;
+    const client = ConnectionManager.client;
+    if (!checkHubOSSlotPrerequisites() || !client) return;
     if (slot === undefined || Number.isNaN(slot))
         slot = await pickSlot('Enter the slot number to clear');
     if (slot === undefined || Number.isNaN(slot))
@@ -61,7 +61,6 @@ export async function clearSlotAny(...args: any[]) {
 
     if (!(await confirmSlotClearByUser(`slot ${slot}`))) return;
 
-    const client = ConnectionManager.client as HubOSBaseClient;
     const success = await client?.action_clear_slot(slot);
     if (!success) {
         logDebug(`Failed to clear slot ${slot}. It may be empty or an error occurred.`);

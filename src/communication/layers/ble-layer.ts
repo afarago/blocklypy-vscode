@@ -21,7 +21,7 @@ import { HubOSBleClient } from '../clients/hubos-ble-client';
 import { PybricksBleClient } from '../clients/pybricks-ble-client';
 import { ConnectionManager } from '../connection-manager';
 import { UUIDu } from '../utils';
-import { BaseLayer, DeviceChangeEvent, LayerType } from './base-layer';
+import { BaseLayer, DeviceChangeEvent, LayerDescriptor, LayerKind } from './base-layer';
 
 const ADVERTISEMENT_POLL_INTERVAL = 1000; // ms
 const DEFAULT_BLE_DEVICE_VISIBILITY = 10000; // ms
@@ -49,7 +49,13 @@ export class DeviceMetadataWithPeripheral extends DeviceMetadata {
 }
 
 export class BLELayer extends BaseLayer {
-    public static override readonly name = LayerType.BLE;
+    public static override readonly descriptor: LayerDescriptor = {
+        id: 'ble',
+        name: 'Bluetooth Low Energy',
+        kind: LayerKind.BLE,
+        canScan: true,
+    } as const;
+
     private _isScanning: boolean = false;
     private _advertisementQueue: Map<
         string,
@@ -163,6 +169,11 @@ export class BLELayer extends BaseLayer {
                     peripheral,
                     undefined,
                 );
+
+                // need to remove this as pybricks creates a random BLE id on each reconnect
+                newMetadata.reuseAfterReconnect =
+                    devtype !== PybricksBleClient.deviceType;
+
                 this._allDevices.set(targetid, newMetadata);
                 return newMetadata;
             })();
@@ -238,10 +249,6 @@ export class BLELayer extends BaseLayer {
         await super.connect(id, devtype);
     }
 
-    public override async disconnect() {
-        await super.disconnect();
-    }
-
     private restartScanning() {
         this.stopScanning();
         void this.startScanning();
@@ -297,9 +304,5 @@ export class BLELayer extends BaseLayer {
 
     public override get scanning() {
         return this._isScanning;
-    }
-
-    public override get allDevices() {
-        return this._allDevices;
     }
 }

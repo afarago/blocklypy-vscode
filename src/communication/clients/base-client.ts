@@ -3,20 +3,24 @@ import Config, { ConfigKeys } from '../../extension/config';
 import { logDebug, logDebugFromHub } from '../../extension/debug-channel';
 import { clearPythonErrors } from '../../extension/diagnostics';
 import { handleStdOutDataHelpers } from '../../logic/stdout-helper';
-import { BaseLayer, LayerType } from '../layers/base-layer';
+import { BaseLayer, LayerKind } from '../layers/base-layer';
 
 export interface ClientClassDescriptor {
     deviceType: string;
     description: string;
     supportsModularMpy: boolean;
     requiresSlot: boolean;
-    os: DeviceOSType;
-    layer: LayerType;
+    os: DeviceOSType | undefined;
+    layer: LayerKind;
 }
 
 export enum DeviceOSType {
     HubOS = 'hubos',
     Pybricks = 'pybricks',
+}
+
+export enum StartMode {
+    REPL = 'repl',
 }
 
 export abstract class BaseClient {
@@ -64,17 +68,20 @@ export abstract class BaseClient {
     }
 
     public get description(): string {
-        return (
-            `${this.name}, ` +
-            this.descriptionKVP.map(([key, value]) => `${key}: ${value}`).join(', ')
-        );
+        const items = [
+            this.name,
+            ...this.descriptionKVP.map(([key, value]) => `${key}: ${value}`),
+        ];
+        return items.join(', ');
     }
 
     public abstract get descriptionKVP(): [string, string][];
 
     public abstract get connected(): boolean;
 
-    public abstract get uniqueSerial(): string | undefined;
+    public get uniqueSerial(): string | undefined {
+        return undefined;
+    }
 
     public get slot(): number | undefined {
         return this._slot;
@@ -85,7 +92,9 @@ export abstract class BaseClient {
 
     public abstract write(data: Uint8Array, withoutResponse: boolean): Promise<void>;
 
-    public abstract updateDeviceNotifications(): Promise<void>;
+    public async updateDeviceNotifications(): Promise<void> {
+        // NOOP
+    }
 
     public async disconnect(): Promise<void> {
         try {
@@ -198,9 +207,32 @@ export abstract class BaseClient {
         throw new Error('sendTerminalUserInput not implemented');
     }
 
-    public async action_start(_slot?: number) {}
+    public async action_start(_slot?: number | StartMode, _replContent?: string) {}
 
     public async action_stop() {}
 
     public async action_upload(_data: Uint8Array, _slot: number, _filename?: string) {}
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async action_move_slot(_from: number, _to: number): Promise<boolean> {
+        throw new Error('action_move_slot not implemented');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async action_clear_slot(_slot: number): Promise<boolean> {
+        throw new Error('Not implemented');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async action_clear_all_slots(): Promise<{
+        completed: number[];
+        failed: number[];
+    }> {
+        throw new Error('Not implemented');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async action_sendAppData(_data: ArrayBuffer) {
+        throw new Error('Not implemented');
+    }
 }

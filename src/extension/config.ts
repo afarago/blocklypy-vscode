@@ -12,6 +12,9 @@ export const enum ConfigKeys {
     ConnectionTimeout = 'connection-timeout',
     DeviceVisibilityTimeout = 'device-visibility-timeout',
     DeviceNotificationPlotFilter = 'device-notification-plot-filter',
+    StopScanOnBlur = 'stop-scan-on-blur',
+
+    // Nested object for feature flags
     FeatureFlags = 'feature-flags',
 }
 

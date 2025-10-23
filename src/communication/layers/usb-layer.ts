@@ -8,7 +8,7 @@ import {
     HUBOS_USB_VENDOR_ID,
 } from '../../spike/protocol';
 import { HubOSUsbClient } from '../clients/hubos-usb-client';
-import { BaseLayer, DeviceChangeEvent, LayerType } from './base-layer';
+import { BaseLayer, DeviceChangeEvent, LayerDescriptor, LayerKind } from './base-layer';
 // import { setInterval } from 'timers/promises';
 
 const USB_CLIENT_TTL = 20 * 1000;
@@ -46,15 +46,18 @@ export class DeviceMetadataForUSB extends DeviceMetadata {
 }
 
 export class USBLayer extends BaseLayer {
-    public static override readonly name = LayerType.USB;
+    public static override readonly descriptor: LayerDescriptor = {
+        id: 'usb',
+        name: 'USB',
+        kind: LayerKind.USB,
+        canScan: true,
+    } as const;
+
     private _supportsHotPlug: boolean = false;
     private _scanHandle: NodeJS.Timeout | undefined = undefined;
     private _isWithinScan: boolean = false;
 
     public override supportsDevtype(_devtype: string) {
-        return HubOSUsbClient.deviceType === _devtype;
-    }
-    public static supportsDevtype(_devtype: string) {
         return HubOSUsbClient.deviceType === _devtype;
     }
 
@@ -213,14 +216,6 @@ export class USBLayer extends BaseLayer {
         }
 
         await super.connect(id, devtype);
-    }
-
-    public override async disconnect() {
-        await super.disconnect();
-    }
-
-    public override get allDevices() {
-        return this._allDevices;
     }
 
     public override get scanning() {

@@ -43,7 +43,7 @@ import { handleTunneleNotificationAsync } from '../../user-hooks/tunnel-notifica
 import { withTimeout } from '../../utils/async';
 import { BaseLayer } from '../layers/base-layer';
 import { crc32WithAlignment } from '../utils';
-import { BaseClient } from './base-client';
+import { BaseClient, StartMode } from './base-client';
 
 const SPIKE_RECEIVE_MESSAGE_TIMEOUT = 5000;
 // const FINALIZE_CAPABILITIES_RETRIES = 5;
@@ -249,7 +249,11 @@ export abstract class HubOSBaseClient extends BaseClient {
         }
     }
 
-    public override async action_start(slot: number) {
+    public override async action_start(
+        slot?: number | StartMode,
+        _replContent?: string,
+    ) {
+        if (typeof slot !== 'number') throw new Error('Start slot must be a number');
         await this.sendMessage(new ProgramFlowRequestMessage(true, slot)); // 1 = start
     }
 
@@ -302,7 +306,7 @@ export abstract class HubOSBaseClient extends BaseClient {
         }
     }
 
-    public async action_move_slot(from: number, to: number): Promise<boolean> {
+    public override async action_move_slot(from: number, to: number): Promise<boolean> {
         if (from === to) return false;
 
         if (from < 0 || from >= HUBOS_SPIKE_SLOTS)
@@ -317,14 +321,14 @@ export abstract class HubOSBaseClient extends BaseClient {
         return !!response?.success;
     }
 
-    public async action_clear_slot(slot: number): Promise<boolean> {
+    public override async action_clear_slot(slot: number): Promise<boolean> {
         const response = await this.sendMessage<ClearSlotResponseMessage>(
             new ClearSlotRequestMessage(slot),
         );
         return !!response?.success;
     }
 
-    public async action_clear_all_slots(): Promise<{
+    public override async action_clear_all_slots(): Promise<{
         completed: number[];
         failed: number[];
     }> {

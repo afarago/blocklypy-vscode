@@ -4,30 +4,48 @@ import { disconnectDeviceAsync } from './commands/disconnect-device';
 import { stopUserProgramAsync } from './commands/stop-user-program';
 import { ConnectionManager } from './communication/connection-manager';
 import { BaseLayer } from './communication/layers/base-layer';
+import { MockLayer } from './communication/layers/mock-layer';
 import { registerDebugTunnel } from './debug-tunnel/debug-tunnel';
 import { registerPybricksTunnelDebug } from './debug-tunnel/register';
 import { Commands, registerCommands } from './extension/commands';
-import Config, { FeatureFlags, registerConfig } from './extension/config';
+import Config, { ConfigKeys, FeatureFlags, registerConfig } from './extension/config';
 import { registerContextUtils } from './extension/context-utils';
 import { logDebug, registerDebugTerminal } from './extension/debug-channel';
 import { clearPythonErrors } from './extension/diagnostics';
 import { registerCommandsTree } from './extension/tree-commands';
 import { wrapErrorHandling } from './extension/utils';
 import { checkMagicHeaderComment } from './logic/compile';
+import { hasState, StateProp } from './logic/state';
 import { onTerminalUserInput } from './logic/stdin-helper';
 import { BlocklypyViewerProvider } from './views/BlocklypyViewerProvider';
 import { DatalogView } from './views/DatalogView';
 import { PythonPreviewProvider } from './views/PythonPreviewProvider';
 
+export enum ExtensionHostModeEnum {
+    Universal = 'universal',
+    Web = 'web',
+}
 export let isDevelopmentMode: boolean;
 export let extensionContext: vscode.ExtensionContext;
 
+let extensionHostMode: ExtensionHostModeEnum | undefined;
+export function isUniversal(): boolean {
+    return extensionHostMode === ExtensionHostModeEnum.Universal;
+}
+
 export async function activateCommon(
     context: vscode.ExtensionContext,
+    hostMode: ExtensionHostModeEnum,
     layers: (typeof BaseLayer)[] = [],
 ) {
     extensionContext = context;
+    extensionHostMode = hostMode;
     isDevelopmentMode = context.extensionMode === vscode.ExtensionMode.Development;
+
+    // In development mode, always add the mock layer
+    if (isDevelopmentMode) {
+        layers.push(MockLayer);
+    }
 
     // First, register all commands explicitly
     registerCommands(context);
@@ -89,7 +107,7 @@ export async function activateCommon(
     // listen to window state changes
     context.subscriptions.push(
         vscode.window.onDidChangeWindowState((e) => {
-            if (!e.focused) {
+            if (!e.focused && Config.get<boolean>(ConfigKeys.StopScanOnBlur, true)) {
                 ConnectionManager?.stopScanning();
             }
         }),
@@ -131,7 +149,10 @@ async function onActiveEditorSaveCallback(document: vscode.TextDocument) {
             const line1 = document.lineAt(0).text;
 
             // check for the autostart in the header (header exists, autostart is included)
-            if (checkMagicHeaderComment(line1)?.autostart) {
+            if (
+                hasState(StateProp.Connected) &&
+                checkMagicHeaderComment(line1)?.autostart
+            ) {
                 console.log('AutoStart detected, compiling and running...');
                 await vscode.commands.executeCommand(Commands.CompileAndRun);
             }

@@ -247,8 +247,4 @@ const webviewConfig = {
         : undefined,
 };
 
-module.exports = [
-    extensionUniversalConfig,
-    // extensionWebConfig,
-    webviewConfig,
-];
+module.exports = [extensionUniversalConfig, extensionWebConfig, webviewConfig];

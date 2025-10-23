@@ -98,6 +98,12 @@
         "enablement": "blocklypy-vscode.isConnected"
       },
       {
+        "command": "blocklypy-vscode.manualConnectDevice",
+        "title": "Initiate Manual Connection to Device",
+        "category": "BlocklyPy Commander",
+        "icon": "$(plug)"
+      },
+      {
         "command": "blocklypy-vscode.compile",
         "title": "Compile",
         "category": "BlocklyPy Commander",
@@ -263,13 +269,15 @@
         "command": "blocklypy-vscode.startREPL",
         "title": "Start Python REPL",
         "category": "BlocklyPy Commander",
-        "icon": "$(terminal)"
+        "icon": "$(terminal)",
+        "enablement": "blocklypy-vscode.isConnected && blocklypy-vscode.ConnectedDeviceType =~ /pybricks/"
       },
       {
         "command": "blocklypy-vscode.startHubMonitor",
         "title": "Start Hub Monitor",
         "category": "BlocklyPy Commander",
-        "icon": "$(graph-line)"
+        "icon": "$(graph-line)",
+        "enablement": "blocklypy-vscode.isConnected && blocklypy-vscode.ConnectedDeviceType =~ /pybricks/"
       }
     ],
     "viewsContainers": {
@@ -382,6 +390,11 @@
         "blocklypy-vscode.device-notification-plot-filter": {
           "type": "string",
           "description": "A comma separated list of device states to filter HubOS device notifications for plotting. Example: ImuValues.yaw."
+        },
+        "blocklypy-vscode.stop-scan-on-blur": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically stop scanning for devices when the VS Code window loses focus."
         },
         "blocklypy-vscode.feature-flags": {
           "type": "object",
@@ -523,6 +536,12 @@
           "command": "blocklypy-vscode.pythonPreview.showSource",
           "when": "activeCustomEditorId == blocklypy-vscode-pythonPreview",
           "group": "navigation@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "blocklypy-vscode.manualConnectDevice",
+          "when": "false"
         }
       ]
     },
@@ -723,6 +742,7 @@
     "blocklypy": "^0.1.11",
     "crc-32": "^1.2.2",
     "fastq": "^1.19.1",
+    "fs": "^0.0.1-security",
     "lodash": "^4.17.21",
     "path-browserify": "^1.0.1",
     "resolve": "^1.22.10",

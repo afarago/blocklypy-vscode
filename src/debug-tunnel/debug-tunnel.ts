@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 
-import { PybricksBleClient } from '../communication/clients/pybricks-ble-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { showWarning } from '../extension/diagnostics';
 import { hasState, onStateChange, StateChangeEvent, StateProp } from '../logic/state';
@@ -64,7 +63,7 @@ class DebugTunnel {
     }
 
     public static async sendToHub(message: Message) {
-        let client: PybricksBleClient = ConnectionManager.client as PybricksBleClient;
+        let client = ConnectionManager.client;
         const encodeds = AppDataInstrumentationPybricksProtocol.encode(message);
         // logDebug(
         //     `Sending to hub: ${encodeds
@@ -73,7 +72,7 @@ class DebugTunnel {
         // );
         await sleep(100); // small delay to avoid congestion
         for (const encoded of encodeds) {
-            await client?.sendAppData(encoded);
+            await client?.action_sendAppData(encoded);
             // logDebug(`Sent to hub: ${Buffer.from(encoded).toString('hex')}`); //!!
         }
     }
@@ -122,7 +121,6 @@ class DebugTunnel {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
     public static async performSetVariable(
         _varName: string,
         value: IRuntimeVariableType,

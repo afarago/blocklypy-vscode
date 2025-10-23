@@ -1,6 +1,6 @@
 import path from 'path';
 import { pickSlot } from '../commands/utils';
-import { PybricksBleClient } from '../communication/clients/pybricks-ble-client';
+import { DeviceOSType } from '../communication/clients/base-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { PybricksDebugEnabled } from '../debug-tunnel/compile-helper';
 import Config, { ConfigKeys } from '../extension/config';
@@ -33,7 +33,10 @@ export async function runPhase1Async(args: runOptions) {
         );
         debug = false;
     }
-    if (debug && !(ConnectionManager.client instanceof PybricksBleClient)) {
+    if (
+        debug &&
+        ConnectionManager.client?.classDescriptor.os !== DeviceOSType.Pybricks
+    ) {
         showWarning(
             'Debug mode is only compatible with LEGO devices connected running Pybricks, falling back to no debug mode.',
         );
@@ -78,7 +81,7 @@ export async function runPhase2Async(args: runOptions): Promise<void> {
     }
     if (
         args.language === 'lego' &&
-        !(ConnectionManager.client instanceof PybricksBleClient)
+        ConnectionManager.client.classDescriptor.os !== DeviceOSType.Pybricks
     ) {
         throw new Error(
             'The generated code is only compatible with LEGO devices connected running Pybricks.',

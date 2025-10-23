@@ -11,7 +11,7 @@ import {
     BaseLayer,
     ConnectionStateChangeEvent,
     DeviceChangeEvent,
-    LayerType,
+    LayerKind,
 } from './layers/base-layer';
 
 export const CONNECTION_TIMEOUT_DEFAULT = 15000;
@@ -58,7 +58,7 @@ export class ConnectionManager {
                 );
                 await instance.initialize();
                 this.layers.push(instance);
-                console.log(`Successfully initialized ${layerCtor.name}.`);
+                console.log(`Successfully initialized ${instance.descriptor.kind}.`);
             } catch (e) {
                 console.error(`Failed to initialize ${layerCtor.name}:`, e);
             }
@@ -99,6 +99,20 @@ export class ConnectionManager {
         }
     }
 
+    public static async connectManuallyOnLayer(layerid?: string) {
+        if (this.busy) throw new Error('Connection manager is busy, try again later');
+
+        this.busy = true;
+        try {
+            const targetLayer = this.layers.find(
+                (layer) => layer.descriptor.id === layerid,
+            );
+            await targetLayer?.manualConnect();
+        } finally {
+            this.busy = false;
+        }
+    }
+
     public static finalize() {
         this.stopScanning();
     }
@@ -131,11 +145,22 @@ export class ConnectionManager {
         ConnectionManager._deviceChange.fire(event);
     }
 
+    public static get canScan(): boolean {
+        return this.layers.some((layer) => layer.descriptor.canScan);
+    }
+    public static getLayers(canScan: boolean) {
+        return this.layers.filter((layer) => layer.descriptor.canScan === canScan);
+    }
+
     public static async startScanning() {
+        if (!this.layers.some((layer) => layer.descriptor.canScan)) {
+            return;
+        }
+
         setState(StateProp.Scanning, true);
 
         await Promise.all(
-            this.layers.map(async (layer) => {
+            this.getLayers(true).map(async (layer) => {
                 if (!layer.ready) return;
                 await layer.startScanning();
             }),
@@ -145,7 +170,7 @@ export class ConnectionManager {
     }
 
     public static stopScanning() {
-        this.layers.forEach((layer) => layer.stopScanning());
+        this.getLayers(true).forEach((layer) => layer.stopScanning());
         setState(StateProp.Scanning, false);
         TreeDP.refresh();
     }
@@ -189,8 +214,10 @@ export class ConnectionManager {
         if (Config.FeatureFlag.get(FeatureFlags.AutoConnectFirstUSBDevice)) {
             // autoconnect to first USB device
             // find usb layer
-            const usbLayer = this.layers.find((layer) => layer.name === LayerType.USB);
-            if (usbLayer) autoconnectIds.push(usbLayer.name); // connect to any device of
+            const usbLayer = this.layers.find(
+                (layer) => layer.descriptor.kind === LayerKind.USB,
+            );
+            if (usbLayer) autoconnectIds.push(usbLayer.descriptor.kind!); // connect to any device of
         }
 
         if (
@@ -213,5 +240,3 @@ export class ConnectionManager {
         }
     }
 }
-
-

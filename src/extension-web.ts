@@ -4,13 +4,21 @@ import {
     activateCommon,
     deactivate,
     extensionContext,
+    ExtensionHostModeEnum,
     isDevelopmentMode,
 } from './extension-common';
+import { mpyCrossWasm } from './logic/compile';
 
 export { deactivate, extensionContext, isDevelopmentMode };
 
 export async function activate(context: vscode.ExtensionContext) {
-    await activateCommon(context, []);
+    const wasmUri = vscode.Uri.joinPath(
+        context.extensionUri,
+        'dist/web/mpy-cross-v6.wasm',
+    );
+    mpyCrossWasm.uri = wasmUri;
+
+    await activateCommon(context, ExtensionHostModeEnum.Web, []);
 }
 
 process.on('uncaughtException', (err) => {

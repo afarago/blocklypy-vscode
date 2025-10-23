@@ -4,7 +4,7 @@ import { maybe } from '../../pybricks/utils';
 import { GetHubNameRequestMessage } from '../../spike/messages/get-hub-name-request-message';
 import { GetHubNameResponseMessage } from '../../spike/messages/get-hub-name-response-message';
 import { pack, unpack } from '../../spike/utils/cobs';
-import { LayerType } from '../layers/base-layer';
+import { LayerKind } from '../layers/base-layer';
 import { DeviceMetadataForUSB, USBLayer } from '../layers/usb-layer';
 import { DeviceOSType } from './base-client';
 import { HubOSBaseClient } from './hubos-base-client';
@@ -14,7 +14,7 @@ const GET_SERIAL_NAME_TIMEOUT = 3000;
 export class HubOSUsbClient extends HubOSBaseClient {
     public static override readonly classDescriptor = {
         os: DeviceOSType.HubOS,
-        layer: LayerType.USB,
+        layer: LayerKind.USB,
         deviceType: 'hubos-usb',
         description: 'HubOS on USB',
         supportsModularMpy: false,
@@ -31,7 +31,7 @@ export class HubOSUsbClient extends HubOSBaseClient {
         return !!this._serialPort?.isOpen;
     }
 
-    public get uniqueSerial(): string | undefined {
+    public override get uniqueSerial(): string | undefined {
         return this.metadata?.portinfo.serialNumber;
     }
 
