@@ -47,7 +47,7 @@ export class ConnectionManager {
         return BaseLayer.ActiveClient;
     }
 
-    public static async initialize(layers: (typeof BaseLayer)[] = []) {
+    public static async initialize(layers: (typeof BaseLayer)[] = []): Promise<void> {
         // Initialization code here
 
         for (const layerCtor of layers) {
@@ -65,7 +65,7 @@ export class ConnectionManager {
         }
 
         await sleep(500); // wait a bit for layers to settle
-        await ConnectionManager.autoConnectOnInit();
+        return ConnectionManager.autoConnectOnInit();
     }
 
     public static async connect(id: string, devtype: string) {
@@ -194,9 +194,30 @@ export class ConnectionManager {
         const promises = this.layers.map((layer) =>
             layer.waitTillAnyDeviceAppearsAsync(ids, timeout),
         );
-        // Return the first found device id, or throw if none found
-        const foundId = await Promise.race(promises);
-        return foundId;
+
+        if (promises.length === 0) return undefined;
+
+        // Resolve with the first fulfilled promise, ignore individual rejections,
+        // and reject if all promises reject.
+        return new Promise<string | undefined>((resolve, reject) => {
+            const errors: unknown[] = [];
+            let rejected = 0;
+
+            for (const p of promises) {
+                p.then((id) => resolve(id)).catch((err) => {
+                    errors.push(err);
+                    rejected++;
+                    if (rejected === promises.length) {
+                        reject(
+                            new AggregateError(
+                                errors,
+                                'All waitTillAnyDeviceAppearsAsync calls rejected',
+                            ),
+                        );
+                    }
+                });
+            }
+        });
     }
 
     public static onDeviceChange(

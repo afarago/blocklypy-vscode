@@ -249,8 +249,19 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
         command: Commands.StartHubMonitor,
         handler: async () => {
             const client = ConnectionManager.client;
-            if (client?.classDescriptor.os !== DeviceOSType.Pybricks)
+            if (client?.classDescriptor.os !== DeviceOSType.Pybricks) {
                 throw new Error('Connect a Pybricks device first.');
+            }
+            if (
+                !Config.FeatureFlag.get(
+                    FeatureFlags.PybricksUseApplicationInterfaceForPybricksProtocol,
+                ) ||
+                !Config.FeatureFlag.get(FeatureFlags.PlotDeviceNotification)
+            ) {
+                throw new Error(
+                    'Enable the Pybricks Application Interface and Device Notification plot feature flags to use Hub Monitor.',
+                );
+            }
 
             const { uri, content } = await loadPythonAssetModule('hubmonitor.min.py');
             if (!uri || !content) throw new Error('Hub Monitor script not found.');
@@ -262,7 +273,9 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
                 async () => {
                     await client.action_start(StartMode.REPL, content);
                     logDebug(
-                        `📡 Started Hub Monitor from ${path.basename(uri.fsPath)}`,
+                        `📡 Started Hub Monitor from ${path.basename(
+                            uri.fsPath,
+                        )}. Use device notification filter command.`,
                     );
                 },
             );

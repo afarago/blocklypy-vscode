@@ -232,11 +232,11 @@ export class BaseLayer {
 
         // if layer does not support scanning, there is no chance to find devices
         if (this.descriptor.canScan === false) {
-            return Promise.resolve(undefined);
+            return Promise.reject(new Error('Layer does not support scanning'));
         }
 
         // wait for event — use a timer instead of checking Date.now inside the listener
-        return new Promise<string | undefined>((resolve) => {
+        return new Promise<string | undefined>((resolve, reject) => {
             const listener = this.onDeviceChange((event: DeviceChangeEvent) => {
                 if (
                     ids.includes(event.metadata.id) ||
@@ -252,7 +252,7 @@ export class BaseLayer {
                 // timeout reached — ensure listener is disposed and reject
                 listener.dispose();
                 // reject(new Error('Timeout waiting for device'));
-                resolve(undefined);
+                reject(new Error('Timeout waiting for device'));
             }, timeout);
         });
     }

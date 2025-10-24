@@ -113,8 +113,8 @@ export async function activateCommon(
         }),
     );
 
-    // Finally, initialize the connection manager and auto-connect if needed
-    await ConnectionManager.initialize(layers);
+    // Finally, initialize the connection manager and auto-connect if needed, intentionally not awaited
+    void ConnectionManager.initialize(layers).catch(console.error);
 
     setTimeout(() => {
         logDebug(

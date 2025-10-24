@@ -21,6 +21,7 @@
 - **Feature:** Spike - tunnel
 - **Plot:** Ability to group metrics to same axis
 - Check/align USB with Pyb!
+- Visual hint about curve/... turns given the current parameters
 
 ### FLL
 
