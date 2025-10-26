@@ -9,7 +9,7 @@ import { disconnectDeviceAsync } from '../commands/disconnect-device';
 import { moveSlotAny } from '../commands/move-slot';
 import { startUserProgramAsync } from '../commands/start-user-program';
 import { stopUserProgramAsync } from '../commands/stop-user-program';
-import { DeviceOSType, StartMode } from '../communication/clients/base-client';
+import { DeviceOSType, StartMode } from '../communication/clients';
 import { ConnectionManager } from '../communication/connection-manager';
 import { BLOCKLYPY_COMMANDS_VIEW_ID, EXTENSION_KEY } from '../const';
 import { loadPythonAssetModule } from '../logic/compile';
@@ -17,10 +17,9 @@ import { plotManager } from '../plot/plot';
 import { getActiveFileFolder, getDateTimeString } from '../utils/files';
 import { BlocklypyViewerProvider, ViewType } from '../views/BlocklypyViewerProvider';
 import { PythonPreviewProvider } from '../views/PythonPreviewProvider';
+import { logDebug, RefreshTree } from './';
 import Config, { ConfigKeys, FeatureFlags } from './config';
-import { logDebug } from './debug-channel';
 import { showInfo, showWarning } from './diagnostics';
-import { TreeDP } from './tree-commands';
 import { openOrActivate as openOrActivateAsync, wrapErrorHandling } from './utils';
 
 // Define the BlocklyPyCommand enum for all command strings
@@ -68,7 +67,7 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
             if (contextValue === 'config') await Config.toggle(id as ConfigKeys);
             else if (contextValue === 'feature-flag')
                 await Config.FeatureFlag.toggle(id as FeatureFlags);
-            TreeDP.refresh();
+            RefreshTree();
         },
     },
     {

@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
+import { debugLogEventEmitter, debugLogEventFromHubEmitter } from '.';
 import { DebugTunnel } from '../debug-tunnel/debug-tunnel';
 import { hasState, StateProp } from '../logic/state';
 import { currentErrorFrame, isErrorOutput } from '../logic/stdout-python-error-helper';
 import { getIcon } from './utils';
+
+let debugTerminal: DebugTerminal | undefined;
+export { debugTerminal };
 
 class DebugTerminal implements vscode.Pseudoterminal {
     terminal: vscode.Terminal;
@@ -89,7 +93,7 @@ class DebugTerminal implements vscode.Pseudoterminal {
     }
 }
 
-export function registerDebugTerminal(
+export async function registerDebugTerminal(
     context: vscode.ExtensionContext,
     onUserInput?: (input: string) => void,
 ) {
@@ -97,7 +101,13 @@ export function registerDebugTerminal(
     debugTerminal = new DebugTerminal(context);
     debugTerminal.onUserInput = onUserInput;
     debugTerminal.show(true);
+    debugTerminal.setCloseCallback(() => {
+        debugTerminal = undefined;
+        //TODO: handle terminal closed by user, maybe reopen it again?
+    });
     // vscode.window.activeTerminal = debugTerminal.terminal;
+    await debugTerminal.terminal.processId;
+    // Terminal is ready to accept input
 
     // // register stdout helpers
     // registerStdoutHelper();
@@ -116,12 +126,7 @@ export function clearDebugLog() {
     debugTerminal?.handleDataFromHubOutput('\x1bc', false, false); // ANSI escape code to clear terminal
 }
 
-export function logDebug(
-    message: string,
-    filepath?: string,
-    line: number | undefined = undefined,
-    show: boolean = false,
-) {
+debugLogEventEmitter.event(({ message, filepath, line, show }) => {
     if (DebugTunnel.isDebugging()) {
         filepath = DebugTunnel._runtime?.getFilePath(filepath ?? '');
         DebugTunnel._runtime?.output(message, 'console', filepath, line);
@@ -131,14 +136,9 @@ export function logDebug(
         if (show) debugTerminal.show(true);
         debugTerminal.handleDataFromExtension(message);
     }
-}
+});
 
-export function logDebugFromHub(
-    message: string,
-    filepath?: string,
-    line?: number,
-    linebreak = true,
-) {
+debugLogEventFromHubEmitter.event(({ message, filepath, line, linebreak }) => {
     if (DebugTunnel.isDebugging()) {
         filepath = DebugTunnel._runtime?.getFilePath(
             filepath ?? currentErrorFrame?.filename ?? '',
@@ -158,7 +158,4 @@ export function logDebugFromHub(
             linebreak,
         );
     }
-}
-
-let debugTerminal: DebugTerminal | undefined;
-export { debugTerminal };
+});

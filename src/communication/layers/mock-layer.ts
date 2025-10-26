@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 
-import { ConnectionState, DeviceMetadata } from '..';
+import { DeviceMetadata, LayerKind } from '.';
 import { MockClient } from '../clients/mock-client';
-import { BaseLayer, DeviceChangeEvent, LayerDescriptor, LayerKind } from './base-layer';
+import { ConnectionState } from '../index';
+import { BaseLayer, DeviceChangeEvent, LayerDescriptor } from './base-layer';
 // import { setInterval } from 'timers/promises';
 
 export class MockDeviceMetadata extends DeviceMetadata {

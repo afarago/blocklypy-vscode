@@ -2,23 +2,20 @@ import { compile } from '@pybricks/mpy-cross-v6';
 import { parse, walk } from '@pybricks/python-program-analysis';
 import path from 'path';
 import * as vscode from 'vscode';
+import { FILENAME_SAMPLE_COMPILED, FILENAME_SAMPLE_RAW, MAIN_MODULE } from '.';
 import { ConnectionManager } from '../communication/connection-manager';
 import {
     DEBUG_ASSET_MODULES,
     PybricksDebugEnabled,
     transformCodeForDebugTunnel,
 } from '../debug-tunnel/compile-helper';
+import { logDebug } from '../extension';
 import { extensionContext } from '../extension-common';
 import Config, { FeatureFlags } from '../extension/config';
-import { logDebug } from '../extension/debug-channel';
 import { transformCodeForPlot } from '../plot/compile-helper';
 import { BlocklypyViewerProvider } from '../views/BlocklypyViewerProvider';
 import { setState, StateProp } from './state';
 
-export const MAIN_MODULE = '__main__';
-export const __MAIN_MODULE_PATH = '__main__.py'; // not used currently
-export const FILENAME_SAMPLE_RAW = 'program.py';
-export const FILENAME_SAMPLE_COMPILED = 'program.mpy'; // app.mpy+program.mpy for HubOS
 
 export type CompileModule = {
     name: string;

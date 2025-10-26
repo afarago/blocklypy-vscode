@@ -4,13 +4,13 @@ import { disconnectDeviceAsync } from './commands/disconnect-device';
 import { stopUserProgramAsync } from './commands/stop-user-program';
 import { ConnectionManager } from './communication/connection-manager';
 import { BaseLayer } from './communication/layers/base-layer';
-import { MockLayer } from './communication/layers/mock-layer';
 import { registerDebugTunnel } from './debug-tunnel/debug-tunnel';
 import { registerPybricksTunnelDebug } from './debug-tunnel/register';
+import { logDebug } from './extension';
 import { Commands, registerCommands } from './extension/commands';
 import Config, { ConfigKeys, FeatureFlags, registerConfig } from './extension/config';
 import { registerContextUtils } from './extension/context-utils';
-import { logDebug, registerDebugTerminal } from './extension/debug-channel';
+import { registerDebugTerminal } from './extension/debug-channel';
 import { clearPythonErrors } from './extension/diagnostics';
 import { registerCommandsTree } from './extension/tree-commands';
 import { wrapErrorHandling } from './extension/utils';
@@ -44,7 +44,7 @@ export async function activateCommon(
 
     // In development mode, always add the mock layer
     if (isDevelopmentMode) {
-        layers.push(MockLayer);
+        // layers.push(MockLayer);
     }
 
     // First, register all commands explicitly
@@ -94,7 +94,7 @@ export async function activateCommon(
     // listen to state changes and update contexts
     registerContextUtils(context);
     // context.subscriptions.push(registerDebugTerminal(sendDataToHubStdin));
-    registerDebugTerminal(context, (input) => {
+    await registerDebugTerminal(context, (input) => {
         void onTerminalUserInput(input);
     });
 
@@ -116,14 +116,12 @@ export async function activateCommon(
     // Finally, initialize the connection manager and auto-connect if needed, intentionally not awaited
     void ConnectionManager.initialize(layers).catch(console.error);
 
-    setTimeout(() => {
-        logDebug(
-            '🚀 BlocklyPy Commander started up successfully.',
-            undefined,
-            undefined,
-            true,
-        );
-    }, 1000);
+    logDebug(
+        '🚀 BlocklyPy Commander started up successfully.',
+        undefined,
+        undefined,
+        true,
+    );
 }
 
 export async function deactivate() {

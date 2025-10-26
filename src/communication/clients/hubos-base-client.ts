@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 
 import fastq, { queueAsPromised } from 'fastq';
-import { DeviceMetadata } from '..';
+import { StartMode } from '.';
+import { logDebug } from '../../extension';
 import { Commands } from '../../extension/commands';
 import Config, { ConfigKeys, FeatureFlags } from '../../extension/config';
-import { logDebug } from '../../extension/debug-channel';
-import { FILENAME_SAMPLE_COMPILED } from '../../logic/compile';
+import { FILENAME_SAMPLE_COMPILED } from '../../logic';
 import { setState, StateProp } from '../../logic/state';
 import { maybe } from '../../pybricks/utils';
 import { HUBOS_SPIKE_SLOTS } from '../../spike';
@@ -41,9 +41,10 @@ import { TunnelPayload } from '../../spike/utils/tunnel-notification-parser';
 import { handleDeviceNotificationAsync } from '../../user-hooks/device-notification-hook';
 import { handleTunneleNotificationAsync } from '../../user-hooks/tunnel-notification-hook';
 import { withTimeout } from '../../utils/async';
+import { DeviceMetadata } from '../layers';
 import { BaseLayer } from '../layers/base-layer';
 import { crc32WithAlignment } from '../utils';
-import { BaseClient, StartMode } from './base-client';
+import { BaseClient } from './base-client';
 
 const SPIKE_RECEIVE_MESSAGE_TIMEOUT = 5000;
 // const FINALIZE_CAPABILITIES_RETRIES = 5;

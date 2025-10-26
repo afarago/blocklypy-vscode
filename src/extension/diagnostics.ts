@@ -1,6 +1,7 @@
 import path from 'path';
 import * as vscode from 'vscode';
-import { __MAIN_MODULE_PATH, ensurePyExtension } from '../logic/compile';
+import { __MAIN_MODULE_PATH } from '../logic';
+import { ensurePyExtension } from '../logic/compile';
 import {
     BlocklypyViewerProvider,
     BlocklypyViewerState,

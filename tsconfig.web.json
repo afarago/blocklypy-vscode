@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        // "moduleResolution": "",
+        "module": "ES2022",
+        "moduleResolution": "Bundler",
         "target": "ES2022",
         "outDir": "dist",
         "lib": ["DOM", "ES2022", "WebWorker"],
@@ -19,5 +19,13 @@
         "typeRoots": ["./node_modules/@types", "./node_modules/@vscode", "./src/types"]
     },
     "include": ["src/**/*.ts", "src/views/webview/*.ts", "src/types/*.d.ts"],
-    "exclude": ["node_modules", ".vscode-test"]
+    "exclude": [
+        "node_modules",
+        ".vscode-test",
+        "src/communication/clients/usb-client.ts",
+        "src/communication/clients/ble-client.ts",
+        "src/communication/layers/usb-layer.ts",
+        "src/communication/layers/ble-layer.ts",
+        "src/extension-universal.ts"
+    ]
 }

@@ -18,7 +18,8 @@ import {
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { Subject } from 'await-notify';
 import { basename } from 'path';
-import { debugTerminal, logDebug } from '../extension/debug-channel';
+import { logDebug } from '../extension';
+import { debugTerminal } from '../extension/debug-channel';
 import { showWarning } from '../extension/diagnostics';
 import { runPhase1Async, runPhase2Async } from '../logic/run';
 import { DebugTunnel } from './debug-tunnel';

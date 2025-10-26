@@ -1,16 +1,15 @@
 import { Characteristic } from '@stoprocent/noble';
 
-import { DeviceMetadata } from '..';
+import { DeviceOSType } from '.';
+import { RSSI_REFRESH_WHILE_CONNECTED_INTERVAL } from '..';
 import {
     SPIKE_RX_CHAR_UUID,
     SPIKE_SERVICE_UUID,
     SPIKE_TX_CHAR_UUID,
 } from '../../spike/protocol';
-import { RSSI_REFRESH_WHILE_CONNECTED_INTERVAL } from '../connection-manager';
-import { LayerKind } from '../layers/base-layer';
+import { DeviceMetadata, LayerKind } from '../layers';
 import { DeviceMetadataWithPeripheral } from '../layers/ble-layer';
 import { UUIDu } from '../utils';
-import { DeviceOSType } from './base-client';
 import { HubOSBaseClient } from './hubos-base-client';
 
 export class HubOSBleClient extends HubOSBaseClient {

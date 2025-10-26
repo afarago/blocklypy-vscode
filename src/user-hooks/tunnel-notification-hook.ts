@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 
 import { HubOSBaseClient } from '../communication/clients/hubos-base-client';
 import { ConnectionManager } from '../communication/connection-manager';
+import { logDebug } from '../extension';
 import Config, { FeatureFlags } from '../extension/config';
-import { logDebug } from '../extension/debug-channel';
 import { plotManager } from '../plot/plot';
 import { TunnelRequestMessage } from '../spike/messages/tunnel-request-message';
 import {

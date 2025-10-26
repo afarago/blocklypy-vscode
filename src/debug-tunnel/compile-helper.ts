@@ -7,13 +7,14 @@ import { parser as rawParser } from '@lezer/python';
 import Config, { FeatureFlags } from '../extension/config';
 import { compiledModules, CompileModule } from '../logic/compile';
 
-export const DEBUG_MODULE_NAME = 'dap_aipp_full'; // name of the module to import in user code - file name without .py
+const DEBUG_MODULE_NAME = 'dap_aipp_full'; // name of the module to import in user code - file name without .py
 // export const DEBUG_MODULE_NAME = 'dap_aipp_min'; // name of the module to import in user code - file name without .py
 export const DEBUG_ASSET_MODULES = [DEBUG_MODULE_NAME];
 const DEBUG_TRAP_FUNCTION = 'dt_trap';
 // Quick stmt keyword test used both for analysis and for skipping trap insertion
 const STATEMENT_KEYWORD_RE =
     /^\s*(#|(async\s+)?(def|class|for|while|if|elif|else|import|from|global|nonlocal|type))\b/;
+const MAX_TRAP_VARIABLES = 255;
 
 export function PybricksDebugEnabled() {
     return Config.FeatureFlag.get(
@@ -29,8 +30,6 @@ function canHaveBreakpoint(_path: string, _lineno: number, line: string) {
 export function checkLineForBreakpoint(path: string, lineno: number, _line: string) {
     return !!compiledModules?.get(path)?.breakpoints?.includes(lineno);
 }
-
-const MAX_TRAP_VARIABLES = 255;
 
 /**
  * Analyze the whole module once to:

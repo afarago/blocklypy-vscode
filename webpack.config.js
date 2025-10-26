@@ -13,7 +13,7 @@ const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const isDevelopment = process.env.NODE_ENV?.trim() === 'development';
 const { platform } = require('node:process');
-console.log(`isDevelopment: ${isDevelopment}, platform: ${platform}`);
+// console.log(`isDevelopment: ${isDevelopment}, platform: ${platform}`);
 
 /** @type WebpackConfig */
 const extensionUniversalConfig = {
@@ -112,6 +112,12 @@ const extensionWebConfig = {
             stream: false,
             util: false,
         },
+        alias: {
+            // ensure fully-specified imports like "process/browser" resolve to the actual file
+            'process/browser': require.resolve('process/browser'),
+            // make "process" also point to the browser shim (helps some packages)
+            process: require.resolve('process/browser'),
+        },
     },
     module: {
         rules: [
@@ -153,6 +159,63 @@ const extensionWebConfig = {
                 // },
             ],
         }),
+        // {
+        //     apply(compiler) {
+        //         compiler.hooks.normalModuleFactory.tap(
+        //             'LogModuleInclusionPlugin',
+        //             (nmf) => {
+        //                 // before resolve -> shows import requests
+        //                 nmf.hooks.beforeResolve.tap(
+        //                     'LogModuleInclusionPlugin',
+        //                     (result) => {
+        //                         if (!result) return;
+        //                         const req = String(result.request || '');
+        //                         console.log(
+        //                             '[webpack][resolve request]',
+        //                             req,
+        //                             'from',
+        //                             result.context,
+        //                         );
+        //                         // optionally print stack to see importer (heavy)
+        //                         // console.trace();
+        //                     },
+        //                 );
+
+        //                 // after resolve -> shows resolved resource path
+        //                 nmf.hooks.afterResolve.tap(
+        //                     'LogModuleInclusionPlugin',
+        //                     (resolveResult) => {
+        //                         if (!resolveResult) return;
+        //                         const res = String(
+        //                             (resolveResult.createData &&
+        //                                 resolveResult.createData.resource) ||
+        //                                 '',
+        //                         );
+        //                         console.log('[webpack][resolved resource]', res);
+        //                     },
+        //                 );
+        //             },
+        //         );
+
+        //         // during compilation -> shows modules being built
+        //         compiler.hooks.compilation.tap(
+        //             'LogModuleInclusionPlugin',
+        //             (compilation) => {
+        //                 compilation.hooks.buildModule.tap(
+        //                     'LogModuleInclusionPlugin',
+        //                     (module) => {
+        //                         if (module && typeof module.identifier === 'function') {
+        //                             console.log(
+        //                                 '[webpack][buildModule]',
+        //                                 module.identifier(),
+        //                             );
+        //                         }
+        //                     },
+        //                 );
+        //             },
+        //         );
+        //     },
+        // },
     ],
     optimization: {
         minimize: !isDevelopment,
@@ -247,4 +310,8 @@ const webviewConfig = {
         : undefined,
 };
 
-module.exports = [extensionUniversalConfig, extensionWebConfig, webviewConfig];
+module.exports = [
+    extensionUniversalConfig,
+    // extensionWebConfig,
+    webviewConfig,
+];

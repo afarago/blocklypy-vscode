@@ -1,7 +1,7 @@
-import { DeviceMetadata } from '..';
-import { TreeDP } from '../../extension/tree-commands';
-import { LayerKind } from '../layers/base-layer';
-import { BaseClient, ClientClassDescriptor } from './base-client';
+import { type ClientClassDescriptor } from '.';
+import { RefreshTree } from '../../extension';
+import { type DeviceMetadata, LayerKind } from '../layers';
+import { BaseClient } from './base-client';
 
 export class MockClient extends BaseClient {
     public static override readonly classDescriptor: ClientClassDescriptor = {
@@ -34,7 +34,7 @@ export class MockClient extends BaseClient {
         this._connected = true;
         this._exitStack.push(() => {
             if (onDeviceRemoved) onDeviceRemoved(metadata);
-            TreeDP.refresh();
+            RefreshTree();
         });
     }
 
@@ -42,7 +42,8 @@ export class MockClient extends BaseClient {
         this._connected = false;
 
         // forced, even ok to remove current client
-        TreeDP.checkForStaleDevices(true);
+
+        RefreshTree(true);
 
         return Promise.resolve();
     }

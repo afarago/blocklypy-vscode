@@ -1,12 +1,11 @@
 import { SerialPort } from 'serialport';
-import { DeviceMetadata } from '..';
+import { DeviceOSType } from '.';
 import { maybe } from '../../pybricks/utils';
 import { GetHubNameRequestMessage } from '../../spike/messages/get-hub-name-request-message';
 import { GetHubNameResponseMessage } from '../../spike/messages/get-hub-name-response-message';
 import { pack, unpack } from '../../spike/utils/cobs';
-import { LayerKind } from '../layers/base-layer';
+import { DeviceMetadata, LayerKind } from '../layers';
 import { DeviceMetadataForUSB, USBLayer } from '../layers/usb-layer';
-import { DeviceOSType } from './base-client';
 import { HubOSBaseClient } from './hubos-base-client';
 
 const GET_SERIAL_NAME_TIMEOUT = 3000;

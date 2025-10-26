@@ -1,4 +1,4 @@
-import { logDebug } from '../extension/debug-channel';
+import { logDebug } from '../extension';
 import { showWarning } from '../extension/diagnostics';
 import {
     DebugMessage,

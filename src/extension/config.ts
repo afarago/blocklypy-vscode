@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { DeviceMetadata } from '../communication';
+import { RefreshTree } from '.';
+import { DeviceMetadata } from '../communication/layers';
 import { EXTENSION_KEY } from '../const';
 import { showWarning } from './diagnostics';
-import { TreeDP } from './tree-commands';
 
 // const CONFIG_BASEKEY = EXTENSION_KEY + '.';
 export const enum ConfigKeys {
@@ -143,7 +143,7 @@ export function registerConfig(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration(EXTENSION_KEY)) {
             Config.handleUpdate(e);
-            TreeDP.refresh();
+            RefreshTree();
         }
     });
 }

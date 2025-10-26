@@ -7,7 +7,7 @@ import {
     ProviderResult,
     WorkspaceFolder,
 } from 'vscode';
-import { TreeDP } from '../extension/tree-commands';
+import { RefreshTree } from '../extension';
 import { hasState, setState, StateProp } from '../logic/state';
 import { PybricksTunnelDebugSession } from './debug-session';
 import { FileAccessor } from './runtime';
@@ -151,11 +151,11 @@ export function registerPybricksTunnelDebug(context: vscode.ExtensionContext) {
         vscode.debug.onDidTerminateDebugSession((session) => {
             if (session.type === PYBRICKS_DEBUG_TYPE) {
                 setState(StateProp.Debugging, false);
-                TreeDP.refresh();
+                RefreshTree();
                 setTimeout(() => {
                     if (!hasState(StateProp.Running)) return;
                     setState(StateProp.Debugging, false);
-                    TreeDP.refresh(); // important if run without debugging
+                    RefreshTree(); // important if run without debugging
                 }, 500); // wait a bit before changing state
             }
         }),

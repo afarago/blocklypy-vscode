@@ -4,7 +4,7 @@ import {
     IPyConverterOptions,
 } from 'blocklypy';
 import * as vscode from 'vscode';
-import { logDebug } from '../extension/debug-channel';
+import { logDebug } from '../extension';
 import GraphvizLoader from '../utils/graphviz-helper';
 import { checkExtraFilesForConversion } from './collectfiles';
 

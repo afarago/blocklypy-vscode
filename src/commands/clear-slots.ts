@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { ConnectionManager } from '../communication/connection-manager';
-import { logDebug } from '../extension/debug-channel';
+import { logDebug } from '../extension';
 import { hasState, StateProp } from '../logic/state';
 import { pickSlot } from './utils';
 

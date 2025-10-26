@@ -9,7 +9,7 @@
  * print(f"plot: name1:{var1}, name2:{var2}"); print("some text")
  */
 
-import { logDebug } from '../extension/debug-channel';
+import { logDebug } from '../extension';
 import { CompileModule } from '../logic/compile';
 
 export const PLOT_COMMAND_PREFIX = 'plot';

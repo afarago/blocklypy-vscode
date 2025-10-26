@@ -26,7 +26,7 @@ type HubDebugMessage =
           };
       };
 
-class DebugTunnel {
+export class DebugTunnel {
     static _runtime: PybricksTunnelDebugRuntime | undefined;
     static _state_isTrapped: boolean = false;
 
@@ -157,7 +157,7 @@ class DebugTunnel {
     }
 }
 
-function registerDebugTunnel(context: vscode.ExtensionContext) {
+export function registerDebugTunnel(context: vscode.ExtensionContext) {
     // eslint-disable-next-line @typescript-eslint/require-await
     const handleStateChange = async (event: StateChangeEvent) => {
         if (
@@ -169,5 +169,3 @@ function registerDebugTunnel(context: vscode.ExtensionContext) {
     };
     context.subscriptions.push(onStateChange(handleStateChange));
 }
-
-export { DebugTunnel, HubDebugMessage, registerDebugTunnel };

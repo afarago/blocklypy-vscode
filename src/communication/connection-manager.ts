@@ -1,22 +1,18 @@
 import * as vscode from 'vscode';
-import { ConnectionState, DeviceMetadata } from '.';
+import { ConnectionState, DEVICE_VISIBILITY_WAIT_TIMEOUT } from '.';
 import { connectDeviceAsync } from '../commands/connect-device';
+import { RefreshTree } from '../extension';
 import Config, { ConfigKeys, FeatureFlags } from '../extension/config';
 import { showWarning } from '../extension/diagnostics';
-import { TreeDP } from '../extension/tree-commands';
 import { hasState, setState, StateProp } from '../logic/state';
 import { setLastDeviceNotificationPayloads } from '../user-hooks/device-notification-hook';
 import { sleep } from '../utils';
+import { DeviceMetadata, LayerKind } from './layers';
 import {
     BaseLayer,
     ConnectionStateChangeEvent,
     DeviceChangeEvent,
-    LayerKind,
 } from './layers/base-layer';
-
-export const CONNECTION_TIMEOUT_DEFAULT = 15000;
-export const RSSI_REFRESH_WHILE_CONNECTED_INTERVAL = 5000;
-export const DEVICE_VISIBILITY_WAIT_TIMEOUT = 15000;
 
 export class ConnectionManager {
     private static busy = false;
@@ -138,7 +134,7 @@ export class ConnectionManager {
             return;
         }
 
-        TreeDP.refresh();
+        RefreshTree();
     }
 
     private static handleDeviceChange(event: DeviceChangeEvent) {
@@ -166,13 +162,13 @@ export class ConnectionManager {
             }),
         );
 
-        TreeDP.refresh();
+        RefreshTree();
     }
 
     public static stopScanning() {
         this.getLayers(true).forEach((layer) => layer.stopScanning());
         setState(StateProp.Scanning, false);
-        TreeDP.refresh();
+        RefreshTree();
     }
 
     public static waitForReadyPromise(): Promise<void[]> {

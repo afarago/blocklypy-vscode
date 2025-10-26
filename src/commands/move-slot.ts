@@ -1,5 +1,5 @@
 import { ConnectionManager } from '../communication/connection-manager';
-import { logDebug } from '../extension/debug-channel';
+import { logDebug } from '../extension';
 import { HUBOS_SPIKE_SLOTS } from '../spike';
 import { checkHubOSSlotPrerequisites } from './clear-slots';
 import { pickSlot } from './utils';

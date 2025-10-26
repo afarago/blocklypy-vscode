@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { DeviceMetadata } from '../communication';
+import { treeRefreshEventEmitter } from '.';
 import { ConnectionManager } from '../communication/connection-manager';
+import { DeviceMetadata } from '../communication/layers';
 import { BaseLayer, DeviceChangeEvent } from '../communication/layers/base-layer';
 import { EXTENSION_KEY } from '../const';
 import { PybricksDebugEnabled } from '../debug-tunnel/compile-helper';
@@ -203,7 +204,12 @@ class CommandsTreeDataProvider extends BaseTreeDataProvider<TreeItemExtData> {
     }
 }
 
-export const TreeDP = new CommandsTreeDataProvider();
+treeRefreshEventEmitter.event((checkStaleAlso?: boolean) => {
+    //CommandsTreeDataProvider.prototype.refresh.call(TreeDP);
+    TreeDP.refresh();
+    if (checkStaleAlso) TreeDP.checkForStaleDevices(true);
+});
+const TreeDP = new CommandsTreeDataProvider();
 export function registerCommandsTree(context: vscode.ExtensionContext) {
     // vscode.window.registerTreeDataProvider(EXTENSION_KEY + '-commands', TreeCommands);
     TreeDP.init(context);
@@ -317,3 +323,4 @@ export function registerCommandsTree(context: vscode.ExtensionContext) {
         }),
     );
 }
+

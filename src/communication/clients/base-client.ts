@@ -1,27 +1,10 @@
-import { DeviceMetadata } from '..';
+import { ClientClassDescriptor, DeviceOSType, StartMode } from '.';
+import { logDebug, logDebugFromHub } from '../../extension';
 import Config, { ConfigKeys } from '../../extension/config';
-import { logDebug, logDebugFromHub } from '../../extension/debug-channel';
 import { clearPythonErrors } from '../../extension/diagnostics';
 import { handleStdOutDataHelpers } from '../../logic/stdout-helper';
-import { BaseLayer, LayerKind } from '../layers/base-layer';
-
-export interface ClientClassDescriptor {
-    deviceType: string;
-    description: string;
-    supportsModularMpy: boolean;
-    requiresSlot: boolean;
-    os: DeviceOSType | undefined;
-    layer: LayerKind;
-}
-
-export enum DeviceOSType {
-    HubOS = 'hubos',
-    Pybricks = 'pybricks',
-}
-
-export enum StartMode {
-    REPL = 'repl',
-}
+import { type DeviceMetadata } from '../layers';
+import { type BaseLayer } from '../layers/base-layer';
 
 export abstract class BaseClient {
     static readonly classDescriptor: ClientClassDescriptor;

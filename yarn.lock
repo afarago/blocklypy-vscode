@@ -1004,7 +1004,7 @@
 
 "@types/dom-serial@^1.0.6":
   version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@types/dom-serial/-/dom-serial-1.0.6.tgz#48462122c0e943195d0611027ff9de979f04f43f"
+  resolved "https://registry.npmjs.org/@types/dom-serial/-/dom-serial-1.0.6.tgz"
   integrity sha512-eUHKbc6mdMgMm75/oBLocs3wkOQkPQ/oNCT+b5OgUT6mLgIvDTp3wCCE9tYZNvDPPh6Cj9lVg2IguWfS/mDrrQ==
 
 "@types/eslint-scope@^3.7.7":
@@ -2895,7 +2895,7 @@ fs.realpath@^1.0.0:
 
 fs@^0.0.1-security:
   version "0.0.1-security"
-  resolved "https://registry.yarnpkg.com/fs/-/fs-0.0.1-security.tgz#8a7bd37186b6dddf3813f23858b57ecaaf5e41d4"
+  resolved "https://registry.npmjs.org/fs/-/fs-0.0.1-security.tgz"
   integrity sha512-3XY9e1pP0CVEUCdj5BmfIZxRBTSDycnbqhIOGec9QYtmVH2fbLpj86CFWkrNOkt/Fvty4KZG5lTglL9j/gJ87w==
 
 fsevents@2.3.2:

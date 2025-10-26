@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 
 import { ConnectionManager } from '../communication/connection-manager';
+import { logDebug } from '../extension';
 import { Commands } from '../extension/commands';
 import Config, { ConfigKeys, FeatureFlags } from '../extension/config';
-import { logDebug } from '../extension/debug-channel';
 import { hasState, StateProp } from '../logic/state';
 import { handleDeviceNotificationForPlotAsync } from '../plot/hubos-plot-helper';
 import {

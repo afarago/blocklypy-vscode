@@ -4,8 +4,8 @@ import {
     type PeripheralAdvertisement,
 } from '@stoprocent/noble';
 
-import _ from 'lodash';
-import { ConnectionState, DeviceMetadata } from '..';
+import { DeviceMetadata, LayerKind } from '.';
+import { ConnectionState } from '..';
 import { isDevelopmentMode } from '../../extension-common';
 import Config, { ConfigKeys } from '../../extension/config';
 import { setStatusBarItem } from '../../extension/statusbar';
@@ -21,7 +21,7 @@ import { HubOSBleClient } from '../clients/hubos-ble-client';
 import { PybricksBleClient } from '../clients/pybricks-ble-client';
 import { ConnectionManager } from '../connection-manager';
 import { UUIDu } from '../utils';
-import { BaseLayer, DeviceChangeEvent, LayerDescriptor, LayerKind } from './base-layer';
+import { BaseLayer, DeviceChangeEvent, LayerDescriptor } from './base-layer';
 
 const ADVERTISEMENT_POLL_INTERVAL = 1000; // ms
 const DEFAULT_BLE_DEVICE_VISIBILITY = 10000; // ms
@@ -50,8 +50,8 @@ export class DeviceMetadataWithPeripheral extends DeviceMetadata {
 
 export class BLELayer extends BaseLayer {
     public static override readonly descriptor: LayerDescriptor = {
-        id: 'ble',
-        name: 'Bluetooth Low Energy',
+        id: 'universal-ble',
+        name: 'Desktop Bluetooth Low Energy',
         kind: LayerKind.BLE,
         canScan: true,
     } as const;
@@ -104,7 +104,8 @@ export class BLELayer extends BaseLayer {
         this._noble.on('discover', (peripheral) => {
             if (!peripheral.advertisement.localName) return;
 
-            const advertisement = _.cloneDeep(peripheral.advertisement);
+            // const advertisement = _.cloneDeep(peripheral.advertisement);
+            const advertisement = peripheral.advertisement;
 
             // Identify device type and id
             const isPybricks = advertisement.serviceUuids?.includes(

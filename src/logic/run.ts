@@ -1,10 +1,11 @@
 import path from 'path';
 import { pickSlot } from '../commands/utils';
-import { DeviceOSType } from '../communication/clients/base-client';
+import { DeviceOSType } from '../communication/clients';
 import { ConnectionManager } from '../communication/connection-manager';
 import { PybricksDebugEnabled } from '../debug-tunnel/compile-helper';
+import { logDebug } from '../extension';
 import Config, { ConfigKeys } from '../extension/config';
-import { clearDebugLog, logDebug } from '../extension/debug-channel';
+import { clearDebugLog } from '../extension/debug-channel';
 import { clearPythonErrors, showWarning } from '../extension/diagnostics';
 import { compiledModules, compileWorkerAsync } from './compile';
 import { hasState, StateProp } from './state';

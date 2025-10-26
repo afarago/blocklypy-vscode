@@ -1,13 +1,12 @@
 import * as vscode from 'vscode';
-import { ConnectionState, DeviceMetadata } from '..';
+import { DeviceMetadata, LayerKind } from '.';
+import { CONNECTION_TIMEOUT_DEFAULT, ConnectionState } from '..';
+import { logDebug, RefreshTree } from '../../extension';
 import Config, { ConfigKeys } from '../../extension/config';
-import { logDebug } from '../../extension/debug-channel';
-import { TreeDP } from '../../extension/tree-commands';
 import { maybe } from '../../pybricks/utils';
 import { sleep } from '../../utils';
 import { withTimeout } from '../../utils/async';
 import { BaseClient } from '../clients/base-client';
-import { CONNECTION_TIMEOUT_DEFAULT } from '../connection-manager';
 
 export type ConnectionStateChangeEvent = {
     client?: BaseClient;
@@ -17,12 +16,6 @@ export type DeviceChangeEvent = {
     metadata: DeviceMetadata;
     layer: BaseLayer;
 };
-
-export enum LayerKind {
-    MOCK = 'mock-layer',
-    BLE = 'ble-layer',
-    USB = 'usb-layer',
-}
 
 export type LayerDescriptor = {
     id: string;
@@ -110,14 +103,14 @@ export class BaseLayer {
                                 // need to remove this as pybricks BLE creates a random BLE id on each reconnect
                                 if (_device.reuseAfterReconnect === false && !!id) {
                                     this._allDevices.delete(id);
-                                    //TreeDP.checkForStaleDevices();
+                                    //RefreshTree(true);
                                 }
 
                                 this.state = ConnectionState.Disconnected;
                                 // setState(StateProp.Connected, false);
                                 // setState(StateProp.Connecting, false);
                                 // setState(StateProp.Running, false);
-                                TreeDP.refresh();
+                                RefreshTree();
                             },
                         )
                         .catch((err) => {

@@ -1,9 +1,9 @@
 import { Characteristic } from '@stoprocent/noble';
 import fastq, { queueAsPromised } from 'fastq';
 import semver from 'semver';
-import { DeviceMetadata } from '..';
+import { ClientClassDescriptor, DeviceOSType, StartMode } from '.';
+import { RefreshTree } from '../../extension';
 import Config, { ConfigKeys, FeatureFlags } from '../../extension/config';
-import { TreeDP } from '../../extension/tree-commands';
 import { setState, StateProp } from '../../logic/state';
 import { AppDataInstrumentationPybricksProtocol } from '../../pybricks/appdata-instrumentation-protocol';
 import {
@@ -33,16 +33,12 @@ import {
 } from '../../pybricks/ble-pybricks-service/protocol';
 import { maybe } from '../../pybricks/utils';
 import { withTimeout } from '../../utils/async';
-import { RSSI_REFRESH_WHILE_CONNECTED_INTERVAL } from '../connection-manager';
-import { BaseLayer, LayerKind } from '../layers/base-layer';
+import { RSSI_REFRESH_WHILE_CONNECTED_INTERVAL } from '../index';
+import { DeviceMetadata, LayerKind } from '../layers';
+import { BaseLayer } from '../layers/base-layer';
 import { DeviceMetadataWithPeripheral } from '../layers/ble-layer';
 import { UUIDu } from '../utils';
-import {
-    BaseClient,
-    ClientClassDescriptor,
-    DeviceOSType,
-    StartMode,
-} from './base-client';
+import { BaseClient } from './base-client';
 
 interface Capabilities {
     maxWriteSize: number;
@@ -89,7 +85,7 @@ export class PybricksBleClient extends BaseClient {
     }
 
     public override get metadata() {
-        return this._metadata as DeviceMetadataWithPeripheral;
+        return this._metadata as unknown as DeviceMetadataWithPeripheral;
     }
 
     public get capabilities() {
@@ -162,7 +158,7 @@ export class PybricksBleClient extends BaseClient {
             if (onDeviceRemoved) onDeviceRemoved(metadata);
 
             // forced, even ok to remove current client
-            TreeDP.checkForStaleDevices(true);
+            RefreshTree(true);
         });
 
         device.on(
