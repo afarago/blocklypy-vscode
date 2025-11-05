@@ -91,6 +91,17 @@ export class DatalogView implements vscode.WebviewViewProvider {
         });
     }
 
+    /**
+     * Add a marker to the plot at the given timestamp.
+     */
+    public async addMarker(markerName: string, markerTimestamp: number) {
+        await this.currentWebviewView?.webview.postMessage({
+            command: 'addMarker',
+            markerName,
+            markerTimestamp,
+        });
+    }
+
     private getHtmlForWebview(scriptSrc: vscode.Uri): string {
         return /* html */ `
             <!DOCTYPE html>

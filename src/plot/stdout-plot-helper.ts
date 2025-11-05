@@ -15,6 +15,7 @@ import { PlotManager } from '../plot/plot';
  * plot: temperature: 23.0
  * plot: temperature=23.0
  * plot: reflectance: 80.0
+ * plot: marker: turn_on_light
  * plot: 10.0, 50.0
  * plot: ,, 80.0
  * plot: 11.0, 51.0, 81.0
@@ -61,6 +62,15 @@ export async function parsePlotCommand(
             ? lineTrimmed.split(',').map((v) => v.trim())
             : undefined;
         plotManager.clear(columnsToClear);
+        return;
+    }
+
+    // --- marker command ---
+    // e.g. "marker: turn_on_light"
+    // words after `marker` will become the title of the marker, numbers won't be plotted as data points
+    if (/^marker:\s*(.+)$/.test(line1)) {
+        const markerName = line1.match(/^marker:\s*(.+)$/)![1].trim();
+        plotManager.addMarker(markerName);
         return;
     }
 

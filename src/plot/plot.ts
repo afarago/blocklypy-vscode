@@ -325,6 +325,11 @@ export class PlotManager {
         this.processPostDataReceived();
     }
 
+    public addMarker(markerName: string) {
+        if (!this.running) return;
+        DatalogView.Instance?.addMarker(markerName, this.delta).catch(console.error);
+    }
+
     public processPostDataReceived() {
         if (!this._initialized || !this._columns?.length || !this._buffer?.length)
             return;
