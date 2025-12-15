@@ -1,6 +1,7 @@
 import { DelimiterParser, SerialPort } from 'serialport';
 import { DeviceMetadata } from '..';
 import { MILLISECONDS_IN_SECOND } from '../../const';
+import { BuiltinProgramId } from '../../pybricks/ble-pybricks-service/protocol';
 import { maybe } from '../../pybricks/utils';
 import { GetHubNameRequestMessage } from '../../spike/messages/get-hub-name-request-message';
 import { GetHubNameResponseMessage } from '../../spike/messages/get-hub-name-response-message';
@@ -116,20 +117,30 @@ export class HubOSUsbClient extends HubOSBaseClient {
             if (onDeviceRemoved) onDeviceRemoved(metadata);
         });
 
-        let _parser = this._serialPort.pipe(
-            new DelimiterParser({ delimiter: [0x02], includeDelimiter: true }),
-        );
+        let _parser = new DelimiterParser({
+            delimiter: [0x02],
+            includeDelimiter: true,
+        });
+        const handleSerialData = (data: Buffer) => {
+            if (this._slot !== BuiltinProgramId.REPL) {
+                _parser.write(data);
+            } else {
+                void this.handleWriteStdout(data.toString('utf-8'));
+            }
+        };
+        this._serialPort.on('data', handleSerialData);
 
-        const handleData = (data: Buffer) => void this.handleIncomingData(data);
+        const handleParserData = (data: Buffer) => {
+            void this.handleIncomingData(data);
+        };
+        _parser.on('data', handleParserData);
         const handleClose = () => void this.handleDisconnectAsync(metadata.id);
-        //this._serialPort.on('data', handleData);
-        _parser.on('data', handleData);
         this._serialPort.on('close', handleClose);
 
         this._exitStack.push(async () => {
             await (this.parent as USBLayer).closePort(this._serialPort!);
-            // this._serialPort?.removeListener('data', handleData);
-            _parser.removeListener('data', handleData);
+            _parser.removeListener('data', handleParserData);
+            this._serialPort?.removeListener('data', handleSerialData);
             this._serialPort?.removeListener('close', handleClose);
             this._serialPort = undefined;
             _parser.destroy();

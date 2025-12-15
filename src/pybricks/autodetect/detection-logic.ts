@@ -1,10 +1,4 @@
-import * as vscode from 'vscode';
-
-import {
-    BaseClient,
-    DeviceOSType,
-    StartMode,
-} from '../../communication/clients/base-client';
+import { DeviceOSType, StartMode } from '../../communication/clients/base-client';
 import { PybricksBleClient } from '../../communication/clients/pybricks-ble-client';
 import { ConnectionManager } from '../../communication/connection-manager';
 import { extensionContext } from '../../extension';
@@ -66,8 +60,7 @@ export async function autodetectPybricksHub(
         const { content } = await loadPythonAssetModule(AUTODETECT_SCRIPT_NAME);
         if (content) {
             // Start listening for output before sending the code
-            const outputPromise = waitForReplOutput(
-                client,
+            const outputPromise = client.readReplOutputLine(
                 AUTODETECT_PREFIX,
                 AUTODETECT_TIMEOUT_MS,
             );
@@ -180,48 +173,6 @@ export async function autodetectPybricksHub(
     }
 
     return { hubType, devices };
-}
-
-/**
- * Wait for the first line of output from REPL with a timeout
- */
-function waitForReplOutput(
-    client: BaseClient,
-    lineStartsWith: string,
-    timeoutMs: number = 10000,
-): Promise<string | undefined> {
-    return new Promise((resolve) => {
-        let timeoutHandle: NodeJS.Timeout | undefined;
-        let disposable: vscode.Disposable | undefined;
-        let resolved = false;
-
-        const cleanup = () => {
-            if (timeoutHandle) clearTimeout(timeoutHandle);
-            if (disposable) disposable.dispose();
-        };
-
-        const resolveOnce = (value: string | undefined) => {
-            if (!resolved) {
-                resolved = true;
-                cleanup();
-                resolve(value);
-            }
-        };
-
-        // Set up timeout
-        timeoutHandle = setTimeout(() => {
-            resolveOnce(undefined);
-        }, timeoutMs);
-
-        // Listen for stdout
-        disposable = client.onStdout((data: string) => {
-            const trimmed = data.trim();
-            if (trimmed.startsWith(lineStartsWith)) {
-                const result = trimmed.substring(lineStartsWith.length).trim();
-                resolveOnce(result);
-            }
-        });
-    });
 }
 
 export async function detectMotorPair(

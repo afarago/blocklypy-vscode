@@ -7,6 +7,7 @@ import Config, { ConfigKeys, FeatureFlags } from '../../extension/config';
 import { logDebug } from '../../extension/debug-channel';
 import { FILENAME_SAMPLE_COMPILED } from '../../logic/compile';
 import { setState, StateProp } from '../../logic/state';
+import { BuiltinProgramId } from '../../pybricks/ble-pybricks-service/protocol';
 import { maybe } from '../../pybricks/utils';
 import { HUBOS_SPIKE_SLOTS } from '../../spike';
 import { decodeHubOSInboundMessage } from '../../spike/messages';
@@ -64,6 +65,7 @@ export abstract class HubOSBaseClient extends BaseClient {
     private _deviceNotificationQueue: BackpressureQueue<DeviceNotificationPayload[]>;
     private _tunnelPayloadQueue: BackpressureQueue<TunnelPayload[]>;
     private _consoleMessageQueue: BackpressureQueue<string>;
+    private _usedSlots: number[] | undefined = undefined;
 
     public get capabilities() {
         return this._capabilities;
@@ -122,6 +124,10 @@ export abstract class HubOSBaseClient extends BaseClient {
         );
     }
 
+    public get usedSlots() {
+        return this._usedSlots;
+    }
+
     public async finalizeConnect() {
         const response = await this.sendMessage<InfoResponseMessage>(
             new InfoRequestMessage(),
@@ -141,6 +147,9 @@ export abstract class HubOSBaseClient extends BaseClient {
             await this.updateDeviceNotifications();
         });
         this._exitStack.push(() => void reg1.dispose());
+
+        // reset used slots on new connection, will be populated on demand
+        this._usedSlots = undefined;
     }
 
     public override async updateDeviceNotifications(): Promise<void> {
@@ -240,7 +249,11 @@ export abstract class HubOSBaseClient extends BaseClient {
                 }
                 case ProgramFlowNotificationMessage.Id: {
                     const programFlowMsg = message as ProgramFlowNotificationMessage;
-                    setState(StateProp.Running, programFlowMsg.action === 0);
+                    const isRunning = programFlowMsg.action === 0; //!! todo check //TODO
+                    setState(StateProp.Running, isRunning);
+                    if (!isRunning) {
+                        this._slot = undefined;
+                    }
                     break;
                 }
                 case ConsoleNotificationMessage.Id: {
@@ -260,18 +273,68 @@ export abstract class HubOSBaseClient extends BaseClient {
         }
     }
 
+    public async setReplMode(enabled: boolean): Promise<void> {
+        if (enabled) {
+            // Enter REPL sequence
+            // CTRL-C to interrupt
+            await this.write(Buffer.from([0x03]));
+
+            // Wait a bit
+            await sleep(100);
+
+            // CTRL-B for normal REPL
+            await this.write(Buffer.from([0x02]));
+
+            this._slot = BuiltinProgramId.REPL;
+            setState(StateProp.Running, true);
+        } else {
+            // Soft reset to exit REPL? Or just leave it?
+            // CTRL-D for soft reset
+            await this.write(Buffer.from([0x04]));
+            await sleep(500);
+
+            this._slot = undefined;
+            setState(StateProp.Running, false);
+        }
+    }
+
     public override async action_start(
         slot?: number | StartMode,
         _replContent?: string,
     ) {
-        if (typeof slot !== 'number') throw new Error('Start slot must be a number');
-        await this.sendMessage(new ProgramFlowRequestMessage(true, slot)); // 1 = start
+        if (slot === StartMode.REPL) {
+            await this.setReplMode(true);
+            this._slot = BuiltinProgramId.REPL;
+        } else if (typeof slot === 'number') {
+            await this.sendMessage(new ProgramFlowRequestMessage(true, slot));
+            this._slot = slot;
+        } else {
+            throw new Error('Start slot must be a number');
+        }
+    }
+
+    public override async sendTerminalUserInputAsync(_text: string) {
+        if (!this.connected) throw new Error('Not connected to a device');
+
+        // In SPIKE Prime, TunnelMessage allows sending arbitrary data between the robot's program and a custom application
+        // (e.g., web or Python environment). This enables advanced interaction, such as exchanging sensor readings or motor
+        // commands, and offers more flexibility than the built-in broadcast message blocks.
+
+        // const message = new TunnelMessage(Buffer.from(text, 'utf-8'));
+        // const response = await this.sendMessage(message);
+        // console.debug('TunnelMessage response:', response);
+        await this.write(Buffer.from(_text, 'utf-8'));
     }
 
     public override async action_stop() {
-        await this.sendMessage(new ProgramFlowRequestMessage(false)); // 0 = stop
-        // hubos-usb does not send a notification when stopping the program, so we set it here
-        setState(StateProp.Running, false);
+        if (this._slot === BuiltinProgramId.REPL) {
+            await this.setReplMode(false);
+        } else {
+            await this.sendMessage(new ProgramFlowRequestMessage(false)); // 0 = stop
+            // hubos-usb does not send a notification when stopping the program, so we set it here
+            setState(StateProp.Running, false);
+            this._slot = undefined;
+        }
     }
 
     public override async action_upload(
@@ -320,7 +383,7 @@ export abstract class HubOSBaseClient extends BaseClient {
         }
     }
 
-    public override async action_move_slot(from: number, to: number): Promise<boolean> {
+    public async action_move_slot(from: number, to: number): Promise<boolean> {
         if (from === to) return false;
 
         if (from < 0 || from >= HUBOS_SPIKE_SLOTS)
@@ -335,28 +398,55 @@ export abstract class HubOSBaseClient extends BaseClient {
         return !!response?.success;
     }
 
-    public override async action_clear_slot(slot: number): Promise<boolean> {
+    public async action_clear_slot(slot: number): Promise<boolean> {
         const response = await this.sendMessage<ClearSlotResponseMessage>(
             new ClearSlotRequestMessage(slot),
         );
         return !!response?.success;
     }
 
-    public override async action_clear_all_slots(): Promise<{
+    public async action_clear_all_slots(): Promise<{
         completed: number[];
         failed: number[];
     }> {
+        await this.action_list_slots();
+
         const completed = [] as number[];
         const failed = [] as number[];
-        for (let slot = 0; slot < HUBOS_SPIKE_SLOTS; slot++) {
-            const response = await this.sendMessage<ClearSlotResponseMessage>(
-                new ClearSlotRequestMessage(slot),
-            );
+        // for (let slot = 0; slot < HUBOS_SPIKE_SLOTS; slot++) {
+        //     const response = await this.sendMessage<ClearSlotResponseMessage>(
+        //         new ClearSlotRequestMessage(slot),
+        //     );
 
-            const success = !!response?.success;
-            if (success) completed.push(slot);
-            else failed.push(slot);
-        }
+        //     const success = !!response?.success;
+        //     if (success) completed.push(slot);
+        //     else failed.push(slot);
+        // }
         return { completed, failed };
+    }
+
+    public async action_list_slots(): Promise<number[]> {
+        // this is not working...
+        // const resp = await this.sendMessage<ListPathResponseMessage>(
+        //     new ListPathRequestMessage('program', 255),
+        // );
+
+        await this.setReplMode(true);
+        const promise = this.readReplOutputLine('DETECT:', 2000);
+        // const command = "import os; [[slot, os.stat(f'program/{slot}/program.mpy')[6]] for slot in os.listdir('program')]";
+        // DETECT: [['00', 92], ['03', 55], ['04', 55]] - slots and bytes
+        const command = "import os; print('DETECT:', ','.join(os.listdir('program')))";
+        // DETECT: 00,01,03,18
+        await this.write(Buffer.from(`${command}\r\n`));
+        const [output, _] = await maybe(promise);
+        await this.setReplMode(false);
+
+        if (output !== undefined) {
+            console.debug('List slots output:', output);
+            const slots = output.split(',').map((s) => parseInt(s, 10));
+            return slots;
+        }
+
+        return [];
     }
 }

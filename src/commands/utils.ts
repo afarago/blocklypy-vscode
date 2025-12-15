@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import { HUBOS_SPIKE_SLOTS } from '../spike';
 
-export async function pickSlot(message: string) {
+const HUBOS_SLOTS = Array(HUBOS_SPIKE_SLOTS).fill(0);
+    ;
+export async function pickSlot(
+    message: string,
+    slots: number[] | undefined = undefined,
+): Promise<number | undefined> {
     const picked = await vscode.window.showQuickPick(
-        Array(HUBOS_SPIKE_SLOTS)
-            .fill(0)
-            .map((_, i) => i.toString()),
+        (slots ?? HUBOS_SLOTS).map((_, i) => i.toString()),
         {
             placeHolder: `${message} (0-${HUBOS_SPIKE_SLOTS - 1})`,
         },

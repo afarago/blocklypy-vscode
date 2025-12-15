@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { HubOSBaseClient } from '../communication/clients/hubos-base-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { logDebug } from '../extension/debug-channel';
 import { hasState, StateProp } from '../logic/state';
@@ -30,7 +31,7 @@ async function confirmSlotClearByUser(message: string) {
 }
 
 export async function clearAllSlots() {
-    const client = ConnectionManager.client;
+    const client = ConnectionManager.client as HubOSBaseClient | undefined;
     if (!checkHubOSSlotPrerequisites() || !client) return;
     if (!(await confirmSlotClearByUser('all slots'))) return;
 
@@ -52,7 +53,7 @@ export async function clearAllSlots() {
 export async function clearSlotAny(...args: any[]) {
     let slot: number | undefined = parseInt((args[0] as string | undefined) ?? '', 10);
 
-    const client = ConnectionManager.client;
+    const client = ConnectionManager.client as HubOSBaseClient | undefined;
     if (!checkHubOSSlotPrerequisites() || !client) return;
     if (slot === undefined || Number.isNaN(slot))
         slot = await pickSlot('Enter the slot number to clear');

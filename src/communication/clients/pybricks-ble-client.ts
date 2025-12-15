@@ -391,7 +391,7 @@ export class PybricksBleClient extends BaseClient {
         }
     }
 
-    public override async action_sendAppData(data: ArrayBuffer) {
+    public async action_sendAppData(data: ArrayBuffer) {
         if (!this.connected) throw new Error('Not connected to a device');
         if (!this._capabilities?.maxWriteSize) return;
 
@@ -410,10 +410,15 @@ export class PybricksBleClient extends BaseClient {
     ) {
         if (typeof slot === 'number' || slot === undefined) {
             // slot is not supported on pybricks, always 0
-            await this.write(createStartUserProgramCommand(slot ?? 0));
+            slot = slot ?? 0;
         } else if (slot === StartMode.REPL) {
-            await this.write(createStartUserProgramCommand(BuiltinProgramId.REPL));
-            if (replContent) await this.sendCodeToRepl(replContent);
+            slot = BuiltinProgramId.REPL;
+        }
+
+        await this.write(createStartUserProgramCommand(slot));
+
+        if (slot === BuiltinProgramId.REPL && replContent) {
+            await this.sendCodeToRepl(replContent);
         }
     }
 

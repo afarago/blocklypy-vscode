@@ -268,7 +268,7 @@ export function registerCommandsTree(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(visibilityDisposable);
 
-    const addDevice = (event: DeviceChangeEvent) => {
+    const refreshDevice = (event: DeviceChangeEvent) => {
         const metadata = event.metadata;
         const id = metadata.id;
         if (!id) return;
@@ -304,7 +304,7 @@ export function registerCommandsTree(context: vscode.ExtensionContext) {
             TreeDP.refreshItem(item);
         }
     };
-    context.subscriptions.push(ConnectionManager.onDeviceChange(addDevice));
+    context.subscriptions.push(ConnectionManager.onDeviceChange(refreshDevice));
 
     // --- Settings tree ---
     const checkboxDisposable = treeview.onDidChangeCheckboxState(

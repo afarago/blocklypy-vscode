@@ -241,26 +241,44 @@ export abstract class BaseClient {
         _progressCb?: (incrementPct: number) => void,
     ) {}
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public async action_move_slot(_from: number, _to: number): Promise<boolean> {
-        throw new Error('action_move_slot not implemented');
-    }
+    /// Wait for REPL output that starts with the given string, with a timeout
+    public async readReplOutputLine(
+        lineStartsWith: string,
+        timeoutMs: number = 10000,
+    ): Promise<string | undefined> {
+        if (!this.connected) return;
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public async action_clear_slot(_slot: number): Promise<boolean> {
-        throw new Error('Not implemented');
-    }
+        return new Promise((resolve) => {
+            let timeoutHandle: NodeJS.Timeout | undefined;
+            let disposable: vscode.Disposable | undefined;
+            let resolved = false;
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public async action_clear_all_slots(): Promise<{
-        completed: number[];
-        failed: number[];
-    }> {
-        throw new Error('Not implemented');
-    }
+            const cleanup = () => {
+                if (timeoutHandle) clearTimeout(timeoutHandle);
+                if (disposable) disposable.dispose();
+            };
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public async action_sendAppData(_data: ArrayBuffer) {
-        throw new Error('Not implemented');
+            const resolveOnce = (value: string | undefined) => {
+                if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    resolve(value);
+                }
+            };
+
+            // Set up timeout
+            timeoutHandle = setTimeout(() => {
+                resolveOnce(undefined);
+            }, timeoutMs);
+
+            // Listen for stdout
+            disposable = this.onStdout((data: string) => {
+                const trimmed = data.trim();
+                if (trimmed.startsWith(lineStartsWith)) {
+                    const result = trimmed.substring(lineStartsWith.length).trim();
+                    resolveOnce(result);
+                }
+            });
+        });
     }
 }

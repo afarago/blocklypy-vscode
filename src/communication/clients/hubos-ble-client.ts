@@ -111,17 +111,4 @@ export class HubOSBleClient extends HubOSBaseClient {
             );
         }
     }
-
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public override async sendTerminalUserInputAsync(_text: string) {
-        if (!this.connected) throw new Error('Not connected to a device');
-
-        // In SPIKE Prime, TunnelMessage allows sending arbitrary data between the robot's program and a custom application
-        // (e.g., web or Python environment). This enables advanced interaction, such as exchanging sensor readings or motor
-        // commands, and offers more flexibility than the built-in broadcast message blocks.
-
-        // const message = new TunnelMessage(Buffer.from(text, 'utf-8'));
-        // const response = await this.sendMessage(message);
-        // console.debug('TunnelMessage response:', response);
-    }
 }

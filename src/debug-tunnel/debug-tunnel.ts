@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { PybricksBleClient } from '../communication/clients/pybricks-ble-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { showWarning } from '../extension/diagnostics';
 import { hasState, onStateChange, StateChangeEvent, StateProp } from '../logic/state';
@@ -63,7 +64,10 @@ class DebugTunnel {
     }
 
     public static async sendToHub(message: Message) {
-        const client = ConnectionManager.client;
+        const client = ConnectionManager.client as PybricksBleClient | undefined;
+        if (!client || !client.connected || !(client instanceof PybricksBleClient))
+            return;
+        
         const encodeds = AppDataInstrumentationPybricksProtocol.encode(message);
         // logDebug(
         //     `Sending to hub: ${encodeds

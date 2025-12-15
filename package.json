@@ -270,7 +270,7 @@
         "title": "Start Python REPL",
         "category": "BlocklyPy Commander",
         "icon": "$(terminal)",
-        "enablement": "blocklypy-vscode.isConnected && blocklypy-vscode.ConnectedDeviceType =~ /pybricks/"
+        "enablement": "blocklypy-vscode.isConnected"
       },
       {
         "command": "blocklypy-vscode.startHubMonitor",
@@ -303,6 +303,27 @@
         "title": "Install Pybricks Pip Package",
         "category": "BlocklyPy Commander",
         "icon": "$(package)"
+      },
+      {
+        "command": "blocklypy-vscode.hubSlots.moveFromList",
+        "title": "Move Program from Slot",
+        "category": "BlocklyPy Commander",
+        "icon": "$(arrow-right)",
+        "enablement": "blocklypy-vscode.isConnected && blocklypy-vscode.ConnectedDeviceType =~ /hubos/"
+      },
+      {
+        "command": "blocklypy-vscode.hubSlots.clearFromList",
+        "title": "Clear Slot",
+        "category": "BlocklyPy Commander",
+        "icon": "$(trash)",
+        "enablement": "blocklypy-vscode.isConnected && blocklypy-vscode.ConnectedDeviceType =~ /hubos/"
+      },
+      {
+        "command": "blocklypy-vscode.manageHubSlots",
+        "title": "Manage Hub Slots",
+        "category": "BlocklyPy Commander",
+        "icon": "$(list-selection)",
+        "enablement": "blocklypy-vscode.isConnected && blocklypy-vscode.ConnectedDeviceType =~ /hubos/"
       }
     ],
     "viewsContainers": {
@@ -311,6 +332,11 @@
           "id": "blocklypy-vscode-commands",
           "title": "BlocklyPy Commander",
           "icon": "asset/icons/icon.svg"
+        },
+        {
+          "id": "blocklypy-vscode-hubslots",
+          "title": "Hub Slots",
+          "icon": "$(list-selection)"
         }
       ],
       "panel": [
@@ -328,6 +354,14 @@
           "name": "Chart",
           "icon": "$(graph-line)",
           "type": "webview"
+        }
+      ],
+      "blocklypy-vscode-hubslots": [
+        {
+          "id": "blocklypy-vscode-hubslots-tree",
+          "name": "Slots",
+          "icon": "$(list-selection)",
+          "type": "tree"
         }
       ],
       "blocklypy-vscode-commands": [
@@ -594,6 +628,18 @@
         {
           "command": "blocklypy-vscode.manualConnectDevice",
           "when": "false"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "blocklypy-vscode.hubSlots.moveFromList",
+          "when": "view == blocklypy-vscode-hubslots-tree && viewItem == hubSlotOccupied",
+          "group": "inline@1"
+        },
+        {
+          "command": "blocklypy-vscode.hubSlots.clearFromList",
+          "when": "view == blocklypy-vscode-hubslots-tree && viewItem == hubSlotOccupied",
+          "group": "inline@2"
         }
       ]
     },

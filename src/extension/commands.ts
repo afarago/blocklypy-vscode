@@ -15,6 +15,7 @@ import {
     insertPybricksTemplate,
 } from '../commands/template-helpers';
 import { DeviceOSType, StartMode } from '../communication/clients/base-client';
+import { HubOSBaseClient } from '../communication/clients/hubos-base-client';
 import { PybricksBleClient } from '../communication/clients/pybricks-ble-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { BLOCKLYPY_COMMANDS_VIEW_ID, EXTENSION_KEY } from '../const';
@@ -25,6 +26,7 @@ import { getActiveFileFolder, getDateTimeString } from '../utils/files';
 import { BlocklypyViewerProvider, ViewType } from '../views/BlocklypyViewerProvider';
 import { DatalogView } from '../views/DatalogView';
 import { PythonPreviewProvider } from '../views/PythonPreviewProvider';
+import { HubSlotsPanel } from '../views/hub-slots-panel';
 import Config, { ConfigKeys, FeatureFlags } from './config';
 import { logDebug } from './debug-channel';
 import { showInfo, showWarning } from './diagnostics';
@@ -68,6 +70,9 @@ export enum Commands {
     CreatePybricksFile = EXTENSION_KEY + '.createPybricksFile',
     OpenHelpPortal = EXTENSION_KEY + '.openHelpPortal',
     InstallPybricksPackage = EXTENSION_KEY + '.installPybricksPackage',
+    ManageHubSlots = EXTENSION_KEY + '.manageHubSlots',
+    HubSlotsMoveFromList = EXTENSION_KEY + '.hubSlots.moveFromList',
+    HubSlotsClearFromList = EXTENSION_KEY + '.hubSlots.clearFromList',
     // StartJupyter = EXTENSION_KEY + '.startJupyter',
 }
 
@@ -169,20 +174,28 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
     },
     {
         command: Commands.Compile,
-        handler: async () => void (await compileOnlyAsync()),
+        handler: async () => {
+            await compileOnlyAsync();
+        },
     },
     {
         command: Commands.CompileAndRun,
-        handler: async () => void (await compileAndRunAsync()),
+        handler: async () => {
+            await compileAndRunAsync();
+        },
     },
     {
         command: Commands.CompileAndRunWithDebug,
-        handler: async () =>
-            void (await compileAndRunAsync(undefined, undefined, true)),
+        handler: async () => {
+            await compileAndRunAsync(undefined, undefined, true);
+        },
     },
     {
         command: Commands.StartUserProgram,
-        handler: async () => void (await startUserProgramAsync()),
+        handler: async (...args: unknown[]) => {
+            const slot_input = args[0] as number | undefined;
+            await startUserProgramAsync(slot_input);
+        },
     },
     {
         command: Commands.StopUserProgram,
@@ -265,14 +278,18 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
         command: Commands.StartREPL,
         handler: async () => {
             const client = ConnectionManager.client;
-            if (
-                client?.classDescriptor.os !== DeviceOSType.Pybricks ||
-                !(client instanceof PybricksBleClient)
-            ) {
-                throw new Error('Connect a Pybricks device first.');
+            if (!client) {
+                throw new Error('Connect a device first.');
             }
-            if (!client.hubType?.capabilities.repl) {
-                throw new Error('REPL is not supported by hub.');
+            if (
+                client?.classDescriptor.os !== DeviceOSType.HubOS &&
+                (client?.classDescriptor.os !== DeviceOSType.Pybricks ||
+                    !(client instanceof PybricksBleClient) ||
+                    !client.hubType?.capabilities.repl)
+            ) {
+                throw new Error(
+                    'Connect a HubOS or Pybricks REPL compatible device first.',
+                );
             }
 
             // Stop any running program
@@ -360,6 +377,48 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
         command: Commands.InstallPybricksPackage,
         handler: async () => {
             await promptInstallPybricks();
+        },
+    },
+    {
+        command: Commands.HubSlotsMoveFromList,
+        handler: async (...args: unknown[]) => {
+            const item = args[0] as { slotIndex?: number } | undefined;
+            if (typeof item?.slotIndex === 'number') {
+                await moveSlotAny(item.slotIndex);
+            } else {
+                await moveSlotAny();
+            }
+        },
+    },
+    {
+        command: Commands.HubSlotsClearFromList,
+        handler: async (...args: unknown[]) => {
+            const item = args[0] as { slotIndex?: number } | undefined;
+            if (typeof item?.slotIndex === 'number') {
+                await clearSlotAny(String(item.slotIndex));
+            } else {
+                await clearSlotAny();
+            }
+        },
+    },
+    {
+        command: Commands.ManageHubSlots,
+        title: 'Manage Hub Slots',
+        icon: '$(list-selection)',
+        // eslint-disable-next-line @typescript-eslint/require-await
+        handler: async () => {
+            const client = ConnectionManager.client;
+            if (!client) {
+                throw new Error('Connect a device first.');
+            }
+            if (!(client instanceof HubOSBaseClient)) {
+                throw new Error('This device does not support slot management.');
+            }
+            const extension = vscode.extensions.getExtension(
+                'afarago.blocklypy-vscode',
+            );
+            if (!extension) throw new Error('Extension not found');
+            HubSlotsPanel.show({ extensionUri: extension.extensionUri }, client);
         },
     },
 ];

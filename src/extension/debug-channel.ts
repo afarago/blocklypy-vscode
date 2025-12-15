@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { ConnectionManager } from '../communication/connection-manager';
 import { DebugTunnel } from '../debug-tunnel/debug-tunnel';
 import { extensionContext } from '../extension';
-import { hasState, StateProp } from '../logic/state';
 import { onTerminalUserInput } from '../logic/stdin-helper';
 import { currentErrorFrame, isErrorOutput } from '../logic/stdout-python-error-helper';
 import { getIcon } from './utils';
@@ -86,7 +85,7 @@ export class DebugTerminal implements vscode.Pseudoterminal {
     }
     handleInputFromTerminal(data: string) {
         if (!this.onUserInput) return; // ignore input if no callback is set, this is how we send to the BLE device
-        if (!hasState(StateProp.Running)) return; // ignore input if user program is not not running
+        // if (!hasState(StateProp.Running)) return; // ignore input if user program is not not running
 
         this.onUserInput(data); // send to BLE device
 

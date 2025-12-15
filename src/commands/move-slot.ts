@@ -1,3 +1,4 @@
+import { HubOSBaseClient } from '../communication/clients/hubos-base-client';
 import { ConnectionManager } from '../communication/connection-manager';
 import { logDebug } from '../extension/debug-channel';
 import { HUBOS_SPIKE_SLOTS } from '../spike';
@@ -14,7 +15,7 @@ export async function moveSlotAny(...args: any[]): Promise<any> {
 }
 
 export async function moveSlot(from?: number, to?: number) {
-    const client = ConnectionManager.client;
+    const client = ConnectionManager.client as HubOSBaseClient | undefined;
     if (!checkHubOSSlotPrerequisites() || !client) return;
 
     for (const [key, value] of [
@@ -22,7 +23,13 @@ export async function moveSlot(from?: number, to?: number) {
         ['to', to],
     ]) {
         if (value === undefined || Number.isNaN(value)) {
-            const picked = await pickSlot(`Enter the slot number to move ${key}`);
+            const slots = key === 'from' ? await client.action_list_slots() : undefined;
+            const picked = await pickSlot(
+                `Enter the slot number to move ${key}`,
+                slots,
+            );
+            if (picked === undefined) return;
+
             if (key === 'from') from = picked;
             else to = picked;
         }

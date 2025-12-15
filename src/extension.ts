@@ -13,6 +13,7 @@ import Config, { ConfigKeys, FeatureFlags, registerConfig } from './extension/co
 import { registerContextUtils } from './extension/context-utils';
 import { logDebug, registerDebugTerminal } from './extension/debug-channel';
 import { clearPythonErrors } from './extension/diagnostics';
+import { registerHubSlotsTree } from './extension/hub-slots-tree';
 import { registerCommandsTree } from './extension/tree-commands';
 import { wrapErrorHandling } from './extension/utils';
 import { checkMagicHeaderComment } from './logic/compile';
@@ -58,6 +59,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // register tree views
     registerCommandsTree(context);
+    registerHubSlotsTree(context);
 
     // listen to file saves
     context.subscriptions.push(
