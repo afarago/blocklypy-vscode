@@ -2,6 +2,14 @@
 
 All significant updates to the "blocklypy" extension are tracked in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Prepare next release notes.
+- Add URI-based clipboard import handler and publishing changelog checks.
+- Auto-commit CHANGELOG.md during publish when it is the only uncommitted file.
+
 ## [0.7.22] - 2025-11-10
 
 ### Fixed
@@ -163,3 +171,4 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 - Initial release
 - Pybricks BLE connection and code compilation
 - Support for opening BlocklyPy files
+

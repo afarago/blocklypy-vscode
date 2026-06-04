@@ -796,6 +796,12 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
+    "build": "npm run package",
+    "dev": "npm run watch-dev",
+    "changelog:release": "node tools/release-changelog.js",
+    "changelog:check": "node tools/check-changelog.js",
+    "changelog:commit-if-only": "node tools/commit-changelog-if-only.js",
+    "prepublishOnly": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only",
     "compile": "webpack",
     "compile-dev": "rm -rf dist && NODE_ENV=development webpack",
     "watch": "NODE_ENV=development webpack --watch --config-node-env development --devtool source-map",
@@ -807,8 +813,8 @@
     "test": "vscode-test",
     "postinstall": "patch-package",
     "package-extension": "npx vsce package",
-    "publish-extension": "npx vsce publish",
-    "publish-extension-with-patch": "npx vsce publish patch"
+    "publish-extension": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only && npx vsce publish",
+    "publish-extension-with-patch": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only && npx vsce publish patch"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

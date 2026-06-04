@@ -1,0 +1,43 @@
+name: Build
+
+# Auto-build disabled for now. Re-enable by uncommenting push/pull_request below.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - master
+  # pull_request:
+  #   branches:
+  #     - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build extension
+        run: yarn package
+
+      - name: Package VSIX (smoke test)
+        run: npx @vscode/vsce package --no-dependencies

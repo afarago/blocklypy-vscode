@@ -14,6 +14,7 @@ import { registerContextUtils } from './extension/context-utils';
 import { registerDebugTerminal } from './extension/debug-channel';
 import { clearPythonErrors } from './extension/diagnostics';
 import { registerCommandsTree } from './extension/tree-commands';
+import { registerUriHandler } from './extension/uri-handler';
 import { wrapErrorHandling } from './extension/utils';
 import { checkMagicHeaderComment } from './logic/compile';
 import { hasState, StateProp } from './logic/state';
@@ -96,6 +97,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Register notebook controller for executing .ipynb cells on the device
     registerMicroPythonNotebookController(context);
+
+    // Register URI handler for clipboard-based import (e.g. from RoboVibe)
+    registerUriHandler(context);
 
     setTimeout(() => {
         void deferredActivations();

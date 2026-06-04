@@ -2,17 +2,19 @@
 
 ## TODO Items
 
+- Run selected code in REPL / but also identify the init code somehow
+
 - Add help portal link, maybe even add direct links / lookups per instructions
     https://docs.pybricks.com/en/latest
 - Snippets
 - USB connect: EV3/Spike
-- Consider `TextDocumentContentProvider`  
+- Consider `TextDocumentContentProvider`
   [VS Code Virtual Documents](https://code.visualstudio.com/api/extension-guides/virtual-documents)
-- Consider `FileSystemProvider` for multi views  
+- Consider `FileSystemProvider` for multi views
   [VS Code FileSystemProvider](https://code.visualstudio.com/api/references/vscode-api#FileSystemProvider)
-- Web extension  
+- Web extension
   [VS Code Web Extensions](https://code.visualstudio.com/api/extension-guides/web-extensions)
-- AI extensibility  
+- AI extensibility
   [AI Extensibility Overview](https://code.visualstudio.com/api/extension-guides/ai/ai-extensibility-overview)
 - Implement Pybricks autocomplete for the Pybricks Python language
 - `characteristic.broadcast(broadcast[, callback(error)])` // broadcast is
