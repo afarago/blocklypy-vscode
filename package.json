@@ -814,7 +814,9 @@
     "postinstall": "patch-package",
     "package-extension": "npx vsce package",
     "publish-extension": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only && npx vsce publish",
-    "publish-extension-with-patch": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only && npx vsce publish patch"
+    "publish-extension-with-patch": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only && npx vsce publish patch",
+    "publish-extension-force": "npx vsce publish",
+    "publish-extension-with-patch-force": "npx vsce publish patch"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
