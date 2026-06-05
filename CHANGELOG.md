@@ -7,6 +7,11 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 ### Changed
 
 - Prepare next release notes.
+
+## [0.7.33] - 2026-06-05
+
+### Changed
+
 - Activate the extension on URI open (`onUri`) so `vscode://afarago.blocklypy-vscode/import?source=clipboard` works without manual activation.
 
 ### Fixed
@@ -186,5 +191,6 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 - Initial release
 - Pybricks BLE connection and code compilation
 - Support for opening BlocklyPy files
+
 
 
