@@ -19,6 +19,10 @@ export class UUIDu {
     }
 
     static toString(uuid: string | number, expand: boolean = false): string {
+        if (uuid === undefined || uuid === null) {
+            throw new TypeError(`Invalid UUID: ${String(uuid)}`);
+        }
+
         if (typeof uuid === 'number') {
             uuid = uuid.toString(16).slice(-4);
         }
@@ -45,11 +49,12 @@ export class UUIDu {
         return cleaned;
     }
 
+    static normalizeKey(uuid: string | number): string {
+        return UUIDu.toString(uuid, true).replace(/-/g, '').toLowerCase();
+    }
+
     static equalUuids(a: string | number, b: string | number): boolean {
-        return (
-            UUIDu.toString(a).replace(/-/g, '').toLowerCase() ===
-            UUIDu.toString(b).replace(/-/g, '').toLowerCase()
-        );
+        return UUIDu.normalizeKey(a) === UUIDu.normalizeKey(b);
     }
 }
 

@@ -155,7 +155,6 @@ export class BLELayer extends BaseLayer {
     public override async initialize() {
         await super.initialize();
 
-        // throw new Error('Noble import not supported');
         const nobleModule = await import('@stoprocent/noble');
         this._noble = nobleModule?.withBindings('default'); // 'hci', 'win', 'mac'
         if (!this._noble) throw new Error('Noble module not loaded');

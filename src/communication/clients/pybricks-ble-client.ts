@@ -205,42 +205,36 @@ export class PybricksBleClient extends BaseClient {
             await device.discoverSomeServicesAndCharacteristicsAsync(
                 [pybricksServiceUUID, UUIDu.to128(deviceInformationServiceUUID)],
                 [
-                    ...[
-                        pybricksControlEventCharacteristicUUID,
-                        pybricksHubCapabilitiesCharacteristicUUID,
-                    ].map((uuid) => UUIDu.to128(uuid)),
-                    ...[
-                        firmwareRevisionStringUUID,
-                        softwareRevisionStringUUID,
-                        pnpIdUUID,
-                    ].map((uuid) => UUIDu.to16(uuid)),
-                ],
+                    pybricksControlEventCharacteristicUUID,
+                    pybricksHubCapabilitiesCharacteristicUUID,
+                    firmwareRevisionStringUUID,
+                    softwareRevisionStringUUID,
+                    pnpIdUUID,
+                ].map((uuid) => UUIDu.to128(uuid)),
             );
         // Map characteristics by normalized UUID (lowercase, no dashes)
-        const characteristics = discoveredServicesandCharacterisitics.characteristics;
-        const charMap = new Map(
-            characteristics.map((c) => [c.uuid.replace(/-/g, '').toLowerCase(), c]),
-        );
+        const characteristics = discoveredServicesandCharacterisitics.characteristics ?? [];
+        const charMap = new Map<string, Characteristic>();
+        for (const characteristic of characteristics) {
+            if (!characteristic?.uuid) {
+                console.warn(
+                    'Skipping BLE characteristic without UUID during Pybricks connect:',
+                    characteristic,
+                );
+                continue;
+            }
+            charMap.set(UUIDu.normalizeKey(characteristic.uuid), characteristic);
+        }
 
         const pybricksControlChar = charMap.get(
-            UUIDu.toString(pybricksControlEventCharacteristicUUID)
-                .replace(/-/g, '')
-                .toLowerCase(),
+            UUIDu.normalizeKey(pybricksControlEventCharacteristicUUID),
         );
         const pybricksHubCapabilitiesChar = charMap.get(
-            UUIDu.toString(pybricksHubCapabilitiesCharacteristicUUID)
-                .replace(/-/g, '')
-                .toLowerCase(),
+            UUIDu.normalizeKey(pybricksHubCapabilitiesCharacteristicUUID),
         );
-        const firmwareChar = charMap.get(
-            UUIDu.toString(firmwareRevisionStringUUID).replace(/-/g, '').toLowerCase(),
-        );
-        const softwareChar = charMap.get(
-            UUIDu.toString(softwareRevisionStringUUID).replace(/-/g, '').toLowerCase(),
-        );
-        const pnpIdChar = charMap.get(
-            UUIDu.toString(pnpIdUUID).replace(/-/g, '').toLowerCase(),
-        );
+        const firmwareChar = charMap.get(UUIDu.normalizeKey(firmwareRevisionStringUUID));
+        const softwareChar = charMap.get(UUIDu.normalizeKey(softwareRevisionStringUUID));
+        const pnpIdChar = charMap.get(UUIDu.normalizeKey(pnpIdUUID));
         if (
             !pybricksControlChar ||
             !pybricksHubCapabilitiesChar ||

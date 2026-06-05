@@ -7,6 +7,16 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 ### Changed
 
 - Prepare next release notes.
+- Activate the extension on URI open (`onUri`) so `vscode://afarago.blocklypy-vscode/import?source=clipboard` works without manual activation.
+
+### Fixed
+
+- Fix BLE scan on macOS by applying the `@stoprocent/noble` webpack prebuild path patch before packaging so native bindings resolve from the extension `prebuilds/` directory instead of the VS Code extensions folder.
+- Fix Pybricks BLE connect failures by normalizing standard Device Information characteristic UUIDs to 128-bit form during service discovery and lookup.
+- Fix `withProgress` location errors by targeting the `blocklypy-vscode-commands-tree` view instead of the activity bar container id.
+- Restore shared `prebuilds/*/node.napi*` binaries from `@serialport/bindings-cpp` to prevent USB scan failures (`"binding.list" Method not implemented`).
+- Split native prebuilds into separate `prebuilds/noble/` and `prebuilds/serialport/` directories so `node-gyp-build` no longer loads the BLE addon when initializing USB serial on macOS.
+- Patch `@serialport/bindings-cpp` to load serialport prebuilds from the extension bundle path used by webpack.
 
 ## [0.7.31] - 2026-06-04
 

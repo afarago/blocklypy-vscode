@@ -2,7 +2,7 @@
   "name": "blocklypy-vscode",
   "displayName": "LEGO Robots BlocklyPy Commander",
   "description": "Interact with LEGO® Hubs running Pybricks firmware: compile and upload Python scripts, convert LEGO robotics files.",
-  "version": "0.7.32",
+  "version": "0.7.33",
   "engines": {
     "vscode": "^1.88.0"
   },
@@ -46,6 +46,7 @@
   },
   "icon": "icon.png",
   "activationEvents": [
+    "onUri",
     "onLanguage:python",
     "onLanguage:lego",
     "onWebviewPanel:blocklypy-vscode-blocklypyViewer",
@@ -806,7 +807,7 @@
     "compile-dev": "rm -rf dist && NODE_ENV=development webpack",
     "watch": "NODE_ENV=development webpack --watch --config-node-env development --devtool source-map",
     "watch-dev": "NODE_ENV=development webpack --watch --config-node-env development --devtool source-map",
-    "package": "rm -rf dist && webpack --mode production --devtool hidden-source-map",
+    "package": "patch-package && rm -rf dist && webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",

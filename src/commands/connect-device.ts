@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ConnectionManager } from '../communication/connection-manager';
-import { BLOCKLYPY_COMMANDS_VIEW_ID, MILLISECONDS_IN_SECOND } from '../const';
+import { BLOCKLYPY_COMMANDS_TREE_VIEW_ID, MILLISECONDS_IN_SECOND } from '../const';
 import { showError } from '../extension/diagnostics';
 import { hasState, StateProp } from '../logic/state';
 
@@ -76,7 +76,7 @@ export async function connectDeviceAsync(id: string, devtype: string) {
 
     await vscode.window.withProgress(
         {
-            location: { viewId: BLOCKLYPY_COMMANDS_VIEW_ID },
+            location: { viewId: BLOCKLYPY_COMMANDS_TREE_VIEW_ID },
             cancellable: false,
         },
         async () => {

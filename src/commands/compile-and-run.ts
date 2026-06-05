@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { BLOCKLYPY_COMMANDS_VIEW_ID } from '../const';
+import { BLOCKLYPY_COMMANDS_TREE_VIEW_ID } from '../const';
 import { PYBRICKS_DEBUG_TYPE } from '../debug-tunnel/register';
 import { logDebug } from '../extension/debug-channel';
 import { runAsync, runPhase1Async } from '../logic/run';
@@ -27,7 +27,7 @@ export async function compileAndRunAsync(
 ): Promise<void> {
     await vscode.window.withProgress(
         {
-            location: { viewId: BLOCKLYPY_COMMANDS_VIEW_ID },
+            location: { viewId: BLOCKLYPY_COMMANDS_TREE_VIEW_ID },
             cancellable: false,
         },
         async () => {

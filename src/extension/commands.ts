@@ -17,7 +17,7 @@ import {
 import { DeviceOSType, StartMode } from '../communication/clients/base-client';
 import { PybricksBleClient } from '../communication/clients/pybricks-ble-client';
 import { ConnectionManager } from '../communication/connection-manager';
-import { BLOCKLYPY_COMMANDS_VIEW_ID, EXTENSION_KEY } from '../const';
+import { BLOCKLYPY_COMMANDS_TREE_VIEW_ID, EXTENSION_KEY } from '../const';
 import { loadPythonAssetModule } from '../logic/compile';
 import { hasState, StateProp } from '../logic/state';
 import { plotManager } from '../plot/plot';
@@ -331,7 +331,7 @@ export const CommandMetaData: CommandMetaDataEntryExtended[] = [
 
             await vscode.window.withProgress(
                 {
-                    location: { viewId: BLOCKLYPY_COMMANDS_VIEW_ID },
+                    location: { viewId: BLOCKLYPY_COMMANDS_TREE_VIEW_ID },
                 },
                 async () => {
                     await client.action_start(StartMode.REPL, content);
