@@ -332,7 +332,7 @@ export class PybricksBleClient extends BaseClient {
                         if (status.flags & statusToFlag(Status.UserProgramRunning)) {
                             this._slot = status.runningProgId;
                         } else {
-                            this._slot = undefined;
+                            this._slot = status.selectedSlot;
                         }
 
                         if (!value) { // only flush incomplete lines when finished. during run the datalog gets confused

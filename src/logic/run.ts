@@ -25,6 +25,8 @@ export type runOptions = {
 const PROGRAM_SIZE_DISPLAY_PROGRESS_THRESHOLD = 5 * 1024; // 5 KB
 
 export async function runPhase1Async(args: runOptions): Promise<void> {
+    const client = ConnectionManager.client;
+
     clearPythonErrors();
     if (Config.get<boolean>(ConfigKeys.TerminalAutoClear) === true) clearDebugLog();
 
@@ -37,10 +39,7 @@ export async function runPhase1Async(args: runOptions): Promise<void> {
         );
         debug = false;
     }
-    if (
-        debug &&
-        ConnectionManager.client?.classDescriptor.os !== DeviceOSType.Pybricks
-    ) {
+    if (debug && client?.classDescriptor.os !== DeviceOSType.Pybricks) {
         showWarning(
             'Debug mode is only compatible with LEGO devices connected running Pybricks, falling back to no debug mode.',
         );
@@ -71,6 +70,17 @@ export async function runPhase1Async(args: runOptions): Promise<void> {
                 .map(([k, v]) => `  └ ${path.basename(k)}: ${v.mpy?.byteLength} bytes`)
                 .join('\r\n'),
         );
+
+    // 2. If the client is Pybricks and slot is selected -> enforce the slot for the current one both for compile and run
+    if (
+        client?.classDescriptor.os === DeviceOSType.Pybricks &&
+        client.slot !== undefined
+    ) {
+        logDebug(
+            `👉 Enforcing slot ${client.slot} for both compile and run phases for Pybricks device.`,
+        );
+        args.slot = client.slot;
+    }
 }
 
 export async function runPhase2Async(args: runOptions): Promise<void> {
