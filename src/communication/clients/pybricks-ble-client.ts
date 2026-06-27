@@ -213,7 +213,8 @@ export class PybricksBleClient extends BaseClient {
                 ].map((uuid) => UUIDu.to128(uuid)),
             );
         // Map characteristics by normalized UUID (lowercase, no dashes)
-        const characteristics = discoveredServicesandCharacterisitics.characteristics ?? [];
+        const characteristics =
+            discoveredServicesandCharacterisitics.characteristics ?? [];
         const charMap = new Map<string, Characteristic>();
         for (const characteristic of characteristics) {
             if (!characteristic?.uuid) {
@@ -232,8 +233,12 @@ export class PybricksBleClient extends BaseClient {
         const pybricksHubCapabilitiesChar = charMap.get(
             UUIDu.normalizeKey(pybricksHubCapabilitiesCharacteristicUUID),
         );
-        const firmwareChar = charMap.get(UUIDu.normalizeKey(firmwareRevisionStringUUID));
-        const softwareChar = charMap.get(UUIDu.normalizeKey(softwareRevisionStringUUID));
+        const firmwareChar = charMap.get(
+            UUIDu.normalizeKey(firmwareRevisionStringUUID),
+        );
+        const softwareChar = charMap.get(
+            UUIDu.normalizeKey(softwareRevisionStringUUID),
+        );
         const pnpIdChar = charMap.get(UUIDu.normalizeKey(pnpIdUUID));
         if (
             !pybricksControlChar ||
@@ -307,12 +312,21 @@ export class PybricksBleClient extends BaseClient {
         });
     }
 
-    protected async write(data: Uint8Array) {
-        await this._rxtxCharacteristic?.writeAsync(
-            Buffer.from(data),
-            /* use with response (withoutResponse=false) */
-            false,
-        );
+    protected async write(data: Uint8Array): Promise<void> {
+        // Retry on transient BLE ATT errors (e.g. hub in transitional state).
+        const MAX_RETRIES = 2;
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                await this._rxtxCharacteristic?.writeAsync(Buffer.from(data), false);
+                return;
+            } catch (err) {
+                if (attempt < MAX_RETRIES) {
+                    await sleep(150);
+                } else {
+                    throw err;
+                }
+            }
+        }
     }
 
     protected async handleIncomingData(data: Buffer): Promise<void> {
@@ -335,7 +349,8 @@ export class PybricksBleClient extends BaseClient {
                             this._slot = status.selectedSlot;
                         }
 
-                        if (!value) { // only flush incomplete lines when finished. during run the datalog gets confused
+                        if (!value) {
+                            // only flush incomplete lines when finished. during run the datalog gets confused
                             await this.processStdoutData();
                         }
                         setState(StateProp.Running, value);
@@ -375,13 +390,15 @@ export class PybricksBleClient extends BaseClient {
         if (!this._capabilities?.maxWriteSize) return;
 
         const maxBleWriteSize = this._capabilities.maxWriteSize;
-        // assert(maxBleWriteSize >= 20, 'bad maxBleWriteSize');
+        // WriteStdin payload includes a 1-byte command header in the frame.
+        const maxStdinPayloadSize = Math.max(1, maxBleWriteSize - 1);
         const value = text;
         const encoder = new TextEncoder();
         const data = encoder.encode(value);
 
-        for (let i = 0; i < data.length; i += maxBleWriteSize) {
-            await this.write(createWriteStdinCommand(data.buffer));
+        for (let i = 0; i < data.length; i += maxStdinPayloadSize) {
+            const chunk = data.slice(i, i + maxStdinPayloadSize);
+            await this.write(createWriteStdinCommand(chunk.buffer));
         }
     }
 
@@ -467,8 +484,9 @@ export class PybricksBleClient extends BaseClient {
         if (lines.length === 0) return;
         // assume in REPL mode already
 
+        const waitPasteMode = this.waitForReplPasteMode();
         await this.sendTerminalUserInputAsync('\x05'); // Ctrl+E (paste mode), hex 05
-        // TODO: wait for REPL to enter paste mode?
+        await waitPasteMode;
         let inMultiLineComment = false;
         for (let line of lines) {
             if (line.trim().endsWith('"""') && inMultiLineComment) {
@@ -481,11 +499,47 @@ export class PybricksBleClient extends BaseClient {
             if (line.trim().length === 0) continue; // skip empty lines
             if (line.trim().startsWith('#')) continue; // skip comment lines
             // skip """ ... """ (multi-line strings) and anything inbetween
+            // Send each line separately and pace writes so the hub does not
+            // drop code while reading stdin in paste mode.
             await this.sendTerminalUserInputAsync(line + eol);
-            // console.debug('Sent REPL line:', line);
             await sleep(1);
         }
         await this.sendTerminalUserInputAsync(eol);
         await this.sendTerminalUserInputAsync('\x04'); // Ctrl+D (finish), hex 04
+    }
+
+    private async waitForReplPasteMode(timeoutMs = 2000): Promise<void> {
+        await new Promise<void>((resolve) => {
+            let settled = false;
+            let seen = '';
+            let sawPasteBanner = false;
+
+            const finalize = (
+                disposable: { dispose(): void },
+                timer: NodeJS.Timeout,
+            ) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                disposable.dispose();
+                resolve();
+            };
+
+            const disposable = this.onStdout((chunk) => {
+                seen += chunk.toLowerCase();
+                if (!sawPasteBanner && seen.includes('paste mode')) {
+                    sawPasteBanner = true;
+                }
+                // '=== ' is the paste-mode input prompt; confirms the hub has
+                // fully entered paste mode and is actively reading stdin.
+                if (sawPasteBanner && seen.includes('=== ')) {
+                    finalize(disposable, timer);
+                }
+            });
+
+            const timer = setTimeout(() => {
+                finalize(disposable, timer);
+            }, timeoutMs);
+        });
     }
 }

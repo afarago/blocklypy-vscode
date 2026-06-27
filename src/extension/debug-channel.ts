@@ -7,6 +7,25 @@ import { onTerminalUserInput } from '../logic/stdin-helper';
 import { currentErrorFrame, isErrorOutput } from '../logic/stdout-python-error-helper';
 import { getIcon } from './utils';
 
+const RECENT_HUB_STDOUT_MAX_CHARS = 32 * 1024;
+let recentHubStdout = '';
+
+function appendRecentHubStdout(text: string) {
+    recentHubStdout += text;
+    if (recentHubStdout.length > RECENT_HUB_STDOUT_MAX_CHARS) {
+        recentHubStdout = recentHubStdout.slice(-RECENT_HUB_STDOUT_MAX_CHARS);
+    }
+}
+
+export function getRecentHubStdout(maxChars = 2048): string {
+    if (maxChars <= 0) return '';
+    return recentHubStdout.slice(-maxChars);
+}
+
+export function clearRecentHubStdout() {
+    recentHubStdout = '';
+}
+
 export class DebugTerminal implements vscode.Pseudoterminal {
     public static _instance: DebugTerminal | undefined;
     public static Instance(): DebugTerminal {
@@ -158,6 +177,7 @@ export function clearDebugLog() {
     if (!DebugTerminal._instance) {
         return;
     }
+    clearRecentHubStdout();
     DebugTerminal._instance.handleDataFromHubOutput('\x1bc', false, false); // ANSI escape code to clear terminal
 }
 
@@ -191,6 +211,7 @@ export function logDebugFromHub(
     line?: number,
     linebreak = true,
 ) {
+    appendRecentHubStdout(message);
     if (DebugTunnel.isDebugging()) {
         filepath = DebugTunnel._runtime?.getFilePath(
             filepath ?? currentErrorFrame?.filename ?? '',

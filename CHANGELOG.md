@@ -4,9 +4,40 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add Copilot Chat tool contribution and runtime registration to trigger
+  compile-and-run on connected hubs.
+- Add embedded MCP Streamable HTTP endpoint (`/mcp`) with
+  `compile_and_run_pybricks` and `read_device_stdout` tools.
+- Add Copilot REPL tool support to execute Python snippets on connected
+  Pybricks hubs and return captured stdout.
+
 ### Changed
 
 - Prepare next release notes.
+
+### Fixed
+
+- MCP server implementation now uses simple JSON-RPC over HTTP instead of StreamableHTTPServerTransport for better compatibility with Claude's HTTP MCP client
+- Added proper error logging and health check endpoint for MCP server diagnostics
+- Avoid leaving the extension in a blocked running state after Copilot REPL
+  tool calls by reusing active REPL sessions and stopping temporary ones.
+- Ensure Copilot REPL tool always exits REPL after execution and strips
+  redundant `InventorHub` boilerplate plus `raise SystemExit()` lines.
+- Fix Pybricks stdin chunking for tool-driven REPL input so long lines are
+  transmitted in proper fragments instead of re-sending the full buffer.
+- Wait for REPL paste mode prompt after Ctrl+E before streaming tool-driven
+  code to avoid truncated execution.
+- Fix REPL paste-mode readiness detection: require both the paste-mode banner
+  and the `===` input prompt before sending code, preventing empty-paste /
+  `SystemExit` when Ctrl-D races ahead of the payload.
+- Fix REPL tool: wait for `StateProp.Running` to become true after
+  `action_start(REPL)` so Ctrl-E is never sent before the hub is ready.
+- Add `repl_pybricks` tool to the MCP server, mirroring the Copilot LM tool.
+- Fix empty REPL execution (paste prompt followed by bare `SystemExit`) by
+  sending paste-mode code line-by-line with pacing instead of one batched
+  payload, which overran the hub stdin buffer and dropped the code.
 
 ## [0.7.33] - 2026-06-05
 

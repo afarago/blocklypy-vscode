@@ -46,7 +46,10 @@
   },
   "icon": "icon.png",
   "activationEvents": [
+    "onStartupFinished",
     "onUri",
+    "onLanguageModelTool:blocklypy_run",
+    "onLanguageModelTool:blocklypy_repl",
     "onLanguage:python",
     "onLanguage:lego",
     "onWebviewPanel:blocklypy-vscode-blocklypyViewer",
@@ -62,6 +65,53 @@
     "ReprEng.csv"
   ],
   "contributes": {
+    "languageModelTools": [
+      {
+        "name": "blocklypy_run",
+        "toolReferenceName": "BlocklyPyRun",
+        "displayName": "Run On Connected Hub",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "slot": {
+              "type": "number",
+              "description": "The hub slot to run the program in (0-19)"
+            }
+          }
+        },
+        "canBeReferencedInPrompt": true,
+        "modelDescription": "Compiles the active Python file and runs it on the currently connected hub, optionally targeting a specific slot.",
+        "tags": [
+          "pybricks",
+          "lego",
+          "run"
+        ]
+      },
+      {
+        "name": "blocklypy_repl",
+        "toolReferenceName": "BlocklyPyRepl",
+        "displayName": "Execute On Connected Hub",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "The Python expression or snippet to evaluate on the device."
+            }
+          },
+          "required": [
+            "command"
+          ]
+        },
+        "canBeReferencedInPrompt": true,
+        "modelDescription": "Executes Python code on the connected Pybricks hub and returns stdout. Use for sensor reads, motor checks, and hardware-in-the-loop debugging.",
+        "tags": [
+          "pybricks",
+          "repl",
+          "debug"
+        ]
+      }
+    ],
     "commands": [
       {
         "command": "blocklypy-vscode.helloWorld-debug-in-editor",
@@ -820,6 +870,7 @@
     "publish-extension-with-patch-force": "npx vsce publish patch"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.20",
     "@types/node": "20.x",
@@ -852,12 +903,13 @@
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "^1.12.0",
     "@lezer/python": "^1.1.18",
-    "@pybricks/mpy-cross-v6": "^2.0.0",
+"@pybricks/mpy-cross-v6": "^2.0.0",
     "@pybricks/python-program-analysis": "^2.0.0",
     "@stoprocent/noble": "^2.3.6",
     "await-notify": "^1.0.1",
     "blocklypy": "^0.1.11",
     "crc-32": "^1.2.2",
+    "express": "^5.2.1",
     "fastq": "^1.19.1",
     "lodash": "^4.17.21",
     "path-browserify": "^1.0.1",

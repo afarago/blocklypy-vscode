@@ -11,10 +11,16 @@
         "dist": true // set this to false to include "dist" folder in search results
     },
     // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-    "typescript.tsc.autoDetect": "off",
+    "js/ts.tsc.autoDetect": "off",
     "editor.formatOnSave": true,
     "editor.tabSize": 2,
     "markdown.validate.enabled": true,
     "liveServer.settings.root": "temp/uPlot/",
-    "liveServer.settings.multiRootWorkspaceName": "blocklypy-vscode-3"
+    "liveServer.settings.multiRootWorkspaceName": "blocklypy-vscode-6",
+    "claude.mcpServers": {
+        "blocklypy": {
+            "type": "http",
+            "url": "http://127.0.0.1:4733/mcp"
+        }
+    }
 }
