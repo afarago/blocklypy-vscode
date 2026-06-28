@@ -11,6 +11,7 @@ All significant updates to the "blocklypy" extension are tracked in this file.
   `vscode-test` works in CI headless environments.
 - Run the build workflow on `build-test-*` and `v*` tag pushes for CI
   validation.
+- Run Jest unit tests as part of the main build job in GitHub Actions.
 
 ### Added
 
