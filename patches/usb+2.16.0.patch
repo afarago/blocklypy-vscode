@@ -1,12 +1,17 @@
 diff --git a/node_modules/usb/dist/usb/bindings.js b/node_modules/usb/dist/usb/bindings.js
-index 9c15197..babd178 100644
+index 9c15197..863711e 100644
 --- a/node_modules/usb/dist/usb/bindings.js
 +++ b/node_modules/usb/dist/usb/bindings.js
-@@ -5,6 +5,6 @@
+@@ -5,6 +5,11 @@
  Object.defineProperty(exports, "__esModule", { value: true });
  const path_1 = require("path");
  /* eslint-disable @typescript-eslint/no-var-requires */
 -const usb = require('node-gyp-build')(process.env.NODE_USB_PATH || (0, path_1.join)(__dirname, '..', '..'));
-+const usb = require('node-gyp-build')(process.env.NODE_USB_PATH || (0, path_1.join)(__dirname, '..'));
++// When bundled by webpack, __dirname = dist/, so:
++//   dist/../prebuilds/usb  =  project_root/prebuilds/usb
++// node-gyp-build then finds  prebuilds/usb/prebuilds/<platform>/node.napi.node
++// which is the usb binary only (isolated from serialport's node.napi.node at project root).
++// node-gyp-build uses __non_webpack_require__ internally so .node loading works in the bundle.
++const usb = require('node-gyp-build')(process.env.NODE_USB_PATH || (0, path_1.join)(__dirname, '..', 'prebuilds', 'usb'));
  module.exports = usb;
  //# sourceMappingURL=bindings.js.map
