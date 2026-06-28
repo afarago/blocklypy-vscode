@@ -28,6 +28,7 @@ import {
 } from '../../pybricks/ble-pybricks-service/protocol';
 import {
     LEGO_USB_VENDOR_ID,
+    legoUsbHubDescriptor,
     legoUsbProductLabel,
     pybricksUsbClass,
     PybricksUsbInEndpointMessageType,
@@ -86,6 +87,7 @@ export class PybricksUsbClient extends BaseClient {
     } | null = null;
 
     private _incomingAppDataQueue: BackpressureQueue<Buffer>;
+    private _version: { firmware: string; software: string } | undefined;
 
     public override get metadata(): DeviceMetadataForPybricksUSB {
         return this._metadata as DeviceMetadataForPybricksUSB;
@@ -98,6 +100,13 @@ export class PybricksUsbClient extends BaseClient {
     public get descriptionKVP(): [string, string][] {
         const kvp: [string, string][] = [];
         kvp.push(['type', this.classDescriptor.description]);
+        const hubDescriptor = legoUsbHubDescriptor(this.metadata.productId);
+        const hubLabel = hubDescriptor?.label ?? legoUsbProductLabel(this.metadata.productId);
+        kvp.push(['hub', hubLabel]);
+        if (this._version) {
+            kvp.push(['firmware', this._version.firmware]);
+            kvp.push(['software', this._version.software]);
+        }
         return kvp;
     }
 
@@ -665,9 +674,10 @@ export class PybricksUsbClient extends BaseClient {
                       .replace(/\0/g, '')
                       .trim()
                 : 'unknown';
-        console.debug(
-            `[PybricksUsbClient] fw=${decodeCtrl(fwResult)} sw=${decodeCtrl(swResult)}`,
-        );
+        const fw = decodeCtrl(fwResult);
+        const sw = decodeCtrl(swResult);
+        console.debug(`[PybricksUsbClient] fw=${fw} sw=${sw}`);
+        this._version = { firmware: fw, software: sw };
 
         this._exitStack.push(() => {
             this.parent.allDevices.delete(metadata.id);

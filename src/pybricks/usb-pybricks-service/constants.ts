@@ -2,6 +2,11 @@
 // Hubs with Pybricks firmware expose a composite interface with class:subclass:protocol ff:c5:f5
 // for GATT-like control reads and bulk IN/OUT framing compatible with the Pybricks BLE profile.
 
+import {
+    HubTypeDescriptors,
+    HubTypeDescriptorType,
+} from '../autodetect/const';
+
 export const pybricksUsbClass = 0xff;
 export const pybricksUsbSubclass = 0xc5;
 export const pybricksUsbProtocol = 0xf5;
@@ -57,4 +62,15 @@ export function legoUsbProductLabel(productId: number): string {
         default:
             return 'Pybricks USB';
     }
+}
+
+const USB_PRODUCT_TO_HUB_TYPE: Partial<Record<LegoUsbProductId, string>> = {
+    [LegoUsbProductId.SpikePrime]: 'PrimeHub',
+    [LegoUsbProductId.SpikeEssential]: 'EssentialHub',
+    [LegoUsbProductId.MindstormsRobotInventor]: 'InventorHub',
+};
+
+export function legoUsbHubDescriptor(productId: number): HubTypeDescriptorType | undefined {
+    const hubType = USB_PRODUCT_TO_HUB_TYPE[productId as LegoUsbProductId];
+    return hubType ? HubTypeDescriptors.find((d) => d.hubType === hubType) : undefined;
 }
