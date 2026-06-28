@@ -20,6 +20,10 @@ interface RobotSizingResponse {
     axleTrack?: number;
 }
 
+declare function acquireVsCodeApi(): {
+    postMessage: (message: unknown) => void;
+};
+
 const vscode = acquireVsCodeApi();
 
 let wheelDiameterInput: HTMLInputElement;

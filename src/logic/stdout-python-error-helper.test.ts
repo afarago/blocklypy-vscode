@@ -76,4 +76,57 @@ NameError: name 'PrimeHub2' isn't defined
         jest.runAllTimers();
         expect(reportPythonError).toHaveBeenCalled();
     });
+
+    it('should map SyntaxError traceback to the correct zero-based line', () => {
+        const errorText = `
+Traceback (most recent call last):
+  File "main.py", line 7
+    if True print("x")
+            ^
+SyntaxError: invalid syntax
+        `.trim();
+
+        parsePythonError(errorText, reportPythonError);
+
+        expect(reportPythonError).toHaveBeenCalledWith(
+            'main.py',
+            6,
+            'SyntaxError: invalid syntax',
+        );
+    });
+
+    it('should map IndentationError traceback to the correct zero-based line', () => {
+        const errorText = `
+Traceback (most recent call last):
+  File "program.py", line 3
+    print("x")
+    ^
+IndentationError: unexpected indent
+        `.trim();
+
+        parsePythonError(errorText, reportPythonError);
+
+        expect(reportPythonError).toHaveBeenCalledWith(
+            'program.py',
+            2,
+            'IndentationError: unexpected indent',
+        );
+    });
+
+    it('should map RuntimeError traceback to the last stack frame line', () => {
+        const errorText = `
+Traceback (most recent call last):
+  File "__main__.py", line 2, in <module>
+  File "robot.py", line 14, in run
+RuntimeError: motor stalled
+        `.trim();
+
+        parsePythonError(errorText, reportPythonError);
+
+        expect(reportPythonError).toHaveBeenCalledWith(
+            'robot.py',
+            13,
+            'RuntimeError: motor stalled',
+        );
+    });
 });

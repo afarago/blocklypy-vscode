@@ -403,8 +403,9 @@ export function decodeTunnelMessage(data: Uint8Array): TunnelPayload[] {
     }
 
     const length = view.readUInt16();
+    const payloadEnd = Math.min(data.length, 3 + length);
     const retval: TunnelPayload[] = [];
-    while (view.offset < Math.min(data.length - 2, length)) {
+    while (view.offset < payloadEnd) {
         const elem = decodeTunnelMessageElem(view);
         retval.push(elem);
     }

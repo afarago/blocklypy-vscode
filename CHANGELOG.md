@@ -7,6 +7,32 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 ### Changed
 
 - Prepare next release notes.
+- Run VS Code integration tests in GitHub Actions using `xvfb-run` so
+  `vscode-test` works in CI headless environments.
+
+### Added
+
+- Add focused unit tests for Pybricks appdata instrumentation protocol
+  encoding and decoding.
+- Add unit tests for `DataViewExtended` covering little/big-endian behavior,
+  boundary reads/writes, and overflow semantics.
+- Add notification parser tests for device and tunnel byte-buffer payload
+  decoding into typed objects.
+- Add unit tests for Python traceback parsing, plot ring-buffer behavior, and
+  Pybricks autodetect hub/device signature handling.
+- Add native prebuild resolver unit tests for platform/arch routing and host
+  binary presence checks.
+
+### Fixed
+
+- Load Jest global types for TypeScript test files under `src/` so editor
+  diagnostics recognize `describe`, `it`, and `expect`.
+- Stabilize `retryWithTimeout` unit tests by attaching rejection assertions
+  before advancing fake timers and by checking backoff timing deterministically.
+- Fix tunnel notification payload decoding bounds so short and multi-element
+  payloads are parsed completely.
+- Improve Python traceback parsing to handle SyntaxError/IndentationError
+  formats that include code snippets and caret lines.
 
 ## [0.7.33] - 2026-06-05
 

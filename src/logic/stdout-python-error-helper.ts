@@ -40,7 +40,7 @@ export function parsePythonErrorLine(line: string, onErrorCb?: ErrorCallback) {
         return;
     }
 
-    const match = /^\s+File "([^"]+)", line (\d+), in .+/.exec(line);
+    const match = /^\s+File "([^"]+)", line (\d+)(?:, in .+)?/.exec(line);
     if (match)
         currentErrorFrame = {
             filename: match[1],
@@ -53,7 +53,21 @@ export function parsePythonErrorLine(line: string, onErrorCb?: ErrorCallback) {
             console.warn('No error frame found before error message');
             return; // no stack frame yet, handle it gracefully
         }
-        currentErrorFrame.message = line.trim(); // message will be after the last stack frame
+        const trimmed = line.trim();
+        if (!trimmed || /^\^+$/.test(trimmed)) {
+            return;
+        }
+
+        // In syntax/indentation errors, traceback may contain code snippets
+        // before the final "*Error" line; only emit on real error lines.
+        const isErrorLine = /^[A-Za-z_][A-Za-z0-9_.]*(Error|Exception)(:|$)/.test(
+            trimmed,
+        );
+        if (!isErrorLine) {
+            return;
+        }
+
+        currentErrorFrame.message = trimmed; // message comes after the last stack frame
 
         const error_local = { ...currentErrorFrame };
         if (onErrorCb)

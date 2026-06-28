@@ -16,7 +16,8 @@
         "noImplicitOverride": true,
         "strictNullChecks": true,
         // "preserveConstEnums": true
-        "typeRoots": ["./node_modules/@types", "./node_modules/@vscode", "./src/types"]
+        "typeRoots": ["./node_modules/@types", "./node_modules/@vscode", "./src/types"],
+        "types": ["node", "vscode", "jest"]
     },
     "include": ["src/**/*.ts", "src/views/webview/*.ts", "src/types/*.d.ts"],
     "exclude": ["node_modules", "node_modules/@types/mocha"]
