@@ -9,6 +9,8 @@ All significant updates to the "blocklypy" extension are tracked in this file.
 - Prepare next release notes.
 - Run VS Code integration tests in GitHub Actions using `xvfb-run` so
   `vscode-test` works in CI headless environments.
+- Run the build workflow on `build-test-*` and `v*` tag pushes for CI
+  validation.
 
 ### Added
 

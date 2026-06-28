@@ -7,6 +7,9 @@ on:
       - master
       - "feature/**"
       - "feat/**"
+    tags:
+      - "build-test-*"
+      - "v*"
   pull_request:
     branches:
       - master
