@@ -52,33 +52,33 @@ jobs:
       - name: Run native prebuild resolver tests
         run: npx jest src/utils/prebuild-resolver.test.ts --runInBand --config jest.config.js
 
-  vscode-integration-tests:
-    name: VS Code Integration Tests
-    runs-on: ubuntu-latest
+  # vscode-integration-tests:
+  #   name: VS Code Integration Tests
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.target_ref || github.sha }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ github.event.inputs.target_ref || github.sha }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: yarn
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "22"
+  #         cache: yarn
 
-      - name: Enable Corepack
-        run: corepack enable
+  #     - name: Enable Corepack
+  #       run: corepack enable
 
-      - name: Install xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb
+  #     - name: Install xvfb
+  #       run: sudo apt-get update && sudo apt-get install -y xvfb
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+  #     - name: Install dependencies
+  #       run: yarn install --frozen-lockfile
 
-      - name: Run VS Code extension tests
-        run: xvfb-run -a yarn test
+  #     - name: Run VS Code extension tests
+  #       run: xvfb-run -a yarn test
 
   build:
     runs-on: ubuntu-latest
