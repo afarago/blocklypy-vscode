@@ -1,14 +1,15 @@
 name: Build
 
-# Auto-build disabled for now. Re-enable by uncommenting push/pull_request below.
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - master
-  # pull_request:
-  #   branches:
-  #     - master
+  push:
+    branches:
+      - master
+      - "feature/**"
+      - "feat/**"
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
@@ -39,5 +40,16 @@ jobs:
       - name: Build extension
         run: yarn package
 
-      - name: Package VSIX (smoke test)
+      - name: Package VSIX
         run: npx @vscode/vsce package --no-dependencies
+
+      - name: Get VSIX filename
+        id: vsix
+        run: echo "file=$(ls *.vsix)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vsix.outputs.file }}
+          path: ${{ steps.vsix.outputs.file }}
+          retention-days: 14
