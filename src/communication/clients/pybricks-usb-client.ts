@@ -86,7 +86,6 @@ export class PybricksUsbClient extends BaseClient {
     } | null = null;
 
     private _incomingAppDataQueue: BackpressureQueue<Buffer>;
-    private _stdoutByteBuffer = new Uint8Array(0);
 
     public override get metadata(): DeviceMetadataForPybricksUSB {
         return this._metadata as DeviceMetadataForPybricksUSB;
@@ -134,7 +133,10 @@ export class PybricksUsbClient extends BaseClient {
                         a.interfaceSubclass === pybricksUsbSubclass &&
                         a.interfaceProtocol === pybricksUsbProtocol,
                 );
-                if (alt) { ifaceNumber = iface.interfaceNumber; break; }
+                if (alt) {
+                    ifaceNumber = iface.interfaceNumber;
+                    break;
+                }
             }
             if (ifaceNumber === undefined) return;
 
@@ -152,16 +154,26 @@ export class PybricksUsbClient extends BaseClient {
                 );
                 if (result.status === 'ok' && result.data) {
                     const name = new TextDecoder()
-                        .decode(new Uint8Array(result.data.buffer, result.data.byteOffset, result.data.byteLength))
+                        .decode(
+                            new Uint8Array(
+                                result.data.buffer,
+                                result.data.byteOffset,
+                                result.data.byteLength,
+                            ),
+                        )
                         .replace(/\0/g, '')
                         .trim();
                     if (name) metadata.name = name;
                 }
             } finally {
-                await usbDevice.releaseInterface(ifaceNumber).catch(() => { /* ignore */ });
+                await usbDevice.releaseInterface(ifaceNumber).catch(() => {
+                    /* ignore */
+                });
             }
         } finally {
-            await usbDevice.close().catch(() => { /* ignore */ });
+            await usbDevice.close().catch(() => {
+                /* ignore */
+            });
         }
     }
 
@@ -374,53 +386,6 @@ export class PybricksUsbClient extends BaseClient {
     }
 
     // -------------------------------------------------------------------------
-    // Stdout byte-level buffering (UTF-8 safe, per-line flush)
-    // -------------------------------------------------------------------------
-
-    private appendStdoutBytes(chunk: Uint8Array): void {
-        if (chunk.length === 0) return;
-        const prev = this._stdoutByteBuffer;
-        const merged = new Uint8Array(prev.length + chunk.length);
-        merged.set(prev, 0);
-        merged.set(chunk, prev.length);
-        this._stdoutByteBuffer = merged;
-        void this.flushStdoutCompleteLines();
-    }
-
-    private async flushStdoutCompleteLines(): Promise<void> {
-        const b = this._stdoutByteBuffer;
-        const dec = new TextDecoder('utf-8', { fatal: false });
-        let lineStart = 0;
-        let i = 0;
-        while (i < b.length) {
-            if (b[i] === 0x0a || b[i] === 0x0d) {
-                const slice = b.subarray(lineStart, i);
-                if (slice.length > 0) {
-                    await this.handleWriteStdout(dec.decode(slice));
-                }
-                i += b[i] === 0x0d && i + 1 < b.length && b[i + 1] === 0x0a ? 2 : 1;
-                lineStart = i;
-            } else {
-                i++;
-            }
-        }
-        this._stdoutByteBuffer =
-            lineStart > 0 && lineStart < b.length
-                ? Uint8Array.from(b.subarray(lineStart))
-                : lineStart >= b.length
-                  ? new Uint8Array(0)
-                  : b;
-    }
-
-    private async flushStdoutPartialTail(): Promise<void> {
-        const b = this._stdoutByteBuffer;
-        if (b.length === 0) return;
-        const line = new TextDecoder('utf-8', { fatal: false }).decode(b).trim();
-        if (line.length > 0) await this.handleWriteStdout(line);
-        this._stdoutByteBuffer = new Uint8Array(0);
-    }
-
-    // -------------------------------------------------------------------------
     // Receive loop and event dispatch
     // -------------------------------------------------------------------------
 
@@ -475,19 +440,14 @@ export class PybricksUsbClient extends BaseClient {
                     this._slot = status.runningProgId;
                 } else {
                     this._slot = status.selectedSlot;
-                    await this.flushStdoutPartialTail();
                 }
                 setState(StateProp.Running, running);
                 break;
             }
             case EventType.WriteStdout: {
                 setState(StateProp.Running, true);
-                const payload = new Uint8Array(
-                    data.buffer,
-                    data.byteOffset + 1,
-                    data.byteLength - 1,
-                );
-                this.appendStdoutBytes(payload);
+                const chunk = data.toString('utf8', 1, data.length);
+                await this.handleWriteStdout(chunk);
                 break;
             }
             case EventType.WriteAppData:
@@ -783,7 +743,6 @@ export class PybricksUsbClient extends BaseClient {
             }
         }
 
-        this._stdoutByteBuffer = new Uint8Array(0);
         this._commandGate = Promise.resolve();
     }
 
