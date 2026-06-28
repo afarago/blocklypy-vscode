@@ -77,6 +77,10 @@ export function getNativePrebuildRelativePath(
         throw new Error(`Unsupported platform: ${platform}`);
     }
 
+    // usb prebuilds live in a nested subdirectory (usb/prebuilds/) to avoid collision with serialport
+    if (normalized === 'usb') {
+        return path.posix.join('prebuilds', 'usb', 'prebuilds', folder, filename);
+    }
     return path.posix.join('prebuilds', folder, filename);
 }
 

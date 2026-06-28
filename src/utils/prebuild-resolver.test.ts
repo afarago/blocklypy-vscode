@@ -62,7 +62,7 @@ describe('Native prebuild resolution', () => {
             arch: 'x64',
             moduleName: 'usb',
             libc: 'musl',
-            expectedRelativePath: 'prebuilds/linux-x64/node.napi.musl.node',
+            expectedRelativePath: 'prebuilds/usb/prebuilds/linux-x64/node.napi.musl.node',
         },
     ];
 

@@ -12,6 +12,8 @@ module.exports = {
     moduleNameMapper: {
         '^blocklypy$': '<rootDir>/__mocks__/blocklypy.js',
         '^@abandonware/noble$': '<rootDir>/__mocks__/@abandonware/noble.js',
+        '^usb/dist/usb/endpoint$': '<rootDir>/__mocks__/usb.js',
+        '^usb$': '<rootDir>/__mocks__/usb.js',
     },
     roots: ['<rootDir>/src', '<rootDir>/__mocks__'],
 };
