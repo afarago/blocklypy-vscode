@@ -1,4 +1,4 @@
-name: Publish to VS Code Marketplace
+name: Publish to VS Code Marketplace and Open VSX
 
 on:
   push:
@@ -47,3 +47,8 @@ jobs:
         run: npx @vscode/vsce publish -p "$VSCE_TOKEN" --no-git-tag-version
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+
+      - name: Publish to Open VSX Registry
+        run: npx ovsx publish -p "$OVSX_TOKEN"
+        env:
+          OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
