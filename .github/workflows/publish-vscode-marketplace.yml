@@ -43,12 +43,15 @@ jobs:
       - name: Build extension
         run: yarn package
 
+      - name: Package VSIX
+        run: npx @vscode/vsce package --no-git-tag-version --out extension.vsix
+
       - name: Publish to Visual Studio Marketplace
-        run: npx @vscode/vsce publish -p "$VSCE_TOKEN" --no-git-tag-version
+        run: npx @vscode/vsce publish -p "$VSCE_TOKEN" --packagePath extension.vsix
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
 
       - name: Publish to Open VSX Registry
-        run: npx ovsx publish -p "$OVSX_TOKEN"
+        run: npx ovsx publish extension.vsix -p "$OVSX_TOKEN"
         env:
-          OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
+          OVSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
