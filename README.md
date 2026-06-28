@@ -1,6 +1,6 @@
 # BlocklyPy Commander for LEGO Robots
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/afarago.blocklypy-vscode?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=afarago.blocklypy-vscode)
+[![Version](https://img.shields.io/open-vsx/v/afarago/blocklypy-vscode?label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=afarago.blocklypy-vscode)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A powerful Visual Studio Code extension designed to supercharge your development
