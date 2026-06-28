@@ -818,7 +818,7 @@
     "publish-extension-with-patch": "npm run changelog:release && npm run changelog:check && npm run changelog:commit-if-only && npx vsce publish patch",
     "publish-extension-force": "npx vsce publish",
     "publish-extension-with-patch-force": "npx vsce publish patch",
-    "release:patch": "npm version patch && git push origin $(git describe --tags --abbrev=0)"
+    "release:patch": "npm version patch && git push && git push origin $(git describe --tags --abbrev=0)"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
