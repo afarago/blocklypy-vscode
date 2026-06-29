@@ -92,7 +92,7 @@ const extensionConfig = {
 };
 
 const webviewEntryFiles = glob
-    .sync(path.resolve(__dirname, 'src/views/webview/*.ts'))
+    .sync(path.resolve(__dirname, 'src/views/webview/*.ts').replace(/\\/g, '/'))
     .filter((f) => !f.endsWith('.d.ts'));
 webviewEntryFiles.push(path.resolve(__dirname, 'src/views/webview/monaco-vendor.ts'));
 
@@ -102,7 +102,7 @@ const webviewConfig = {
     entry: Object.fromEntries(
         webviewEntryFiles.map((file) => {
             const name = path.basename(file, path.extname(file));
-            return [name, file];
+            return [name, file.replace(/\\/g, '/')];
         }),
     ),
     output: {
